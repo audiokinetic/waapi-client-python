@@ -1,14 +1,62 @@
 import inspect
+from threading import Thread
+from pprint import pformat
 
-import six
+from waapi.libs.async_compatibility import asyncio
+
 import txaio
+txaio.use_asyncio()
 
 from autobahn import util
 from autobahn.wamp import exception, types, uri
 from autobahn.wamp.message import Call, Subscribe
 from autobahn.wamp.protocol import CallRequest, is_method_or_function
-from autobahn.asyncio.wamp import ApplicationSession
+from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.request import Handler, SubscribeRequest
+
+
+def runner_init(url, akcomponent_factory, owner, queue_size, loop):
+    """
+    :type url: str
+    :type akcomponent_factory: () -> WaapiClientAutobahn
+    :type owner: ClientOwner
+    :type queue_size: int
+    :rtype: Thread
+    """
+    runner = ApplicationRunner(url=url, realm=u"waapi_client")
+
+    request_queue = asyncio.Queue(queue_size)
+
+    async_client_thread = _WaapiClientThread(
+        runner,
+        loop,
+        request_queue,
+        akcomponent_factory
+    )
+    async_client_thread.start()
+
+    return async_client_thread, request_queue
+
+
+class _WaapiClientThread(Thread):
+    def __init__(self, runner, loop, request_queue, akcomponent_factory):
+        super(_WaapiClientThread, self).__init__()
+        self._runner = runner
+        self._loop = loop
+        """:type: asyncio.AbstractEventLoop"""
+        self._request_queue = request_queue
+        self._akcomponent_factory = akcomponent_factory
+
+    def run(self):
+        try:
+            asyncio.set_event_loop(self._loop)
+            print("Starting the runner...")
+            self._runner.run(
+                lambda config: self._akcomponent_factory(config, self._request_queue))
+
+            print("Runner done!")
+        except Exception as e:
+            print(type(e).__name__ + pformat(e))
 
 
 class AkCall(Call):
