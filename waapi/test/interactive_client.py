@@ -10,7 +10,7 @@ while not client:
     time.sleep(1)
     client = WaapiClient.connect()
 
-assert(client.has_client())
+assert(client.is_connected())
 
 print("Ready!")
 
@@ -19,11 +19,18 @@ while True:
     todo = input("What do you want to do? ")
 
     todo = todo.lower()
-    if todo == "getinfo":
+    if todo == "help":
+        print("Defined commands:")
+        print("* getinfo")
+        print("* sel")
+        print("* project")
+        print("* note(w)")
+        print("* quit/exit")
+    elif todo == "getinfo":
         response = client.call("ak.wwise.core.getInfo")
         pprint(response)
     elif todo == "sel":
-        def sel_changed(data):
+        def sel_changed(**kwargs):
             print("Selection changed!")
 
         response = client.subscribe("ak.wwise.ui.selectionChanged", sel_changed)

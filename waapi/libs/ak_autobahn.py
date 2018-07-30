@@ -21,11 +21,33 @@ from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
 from autobahn.wamp.request import Handler, SubscribeRequest
 
 
-def runner_init(url, akcomponent_factory, owner, queue_size, loop):
+class AutobahnClientDecoupler:
+    def __init__(self, queue_size):
+        self._request_queue = asyncio.Queue(queue_size)
+        self._connected_event = Event()
+
+    def wait_for_connection(self):
+        self._connected_event.wait()
+
+    def put_request(self, request):
+        """
+        Put a WampRequest in the decoupled client processing queue
+        :type request: WampRequest
+        """
+        self._request_queue.put(request)
+
+    def get_request(self):
+        """
+        Get a WampRequest from the decoupled client processing queue
+        :rtype: WampRequest
+        """
+        return self._request_queue.get()
+
+
+def runner_init(url, akcomponent_factory, queue_size, loop):
     """
     :type url: str
     :type akcomponent_factory: (*Any) -> WaapiClientAutobahn
-    :type owner: ClientOwner
     :type queue_size: int
     :rtype: (Thread, Event, asyncio.Queue)
     """
