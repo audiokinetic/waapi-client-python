@@ -97,8 +97,6 @@ class WaapiClient(ClientOwner):
 
         return forwarded_future.result()
 
-
-
     def __del__(self):
         self.disconnect()
 
@@ -118,12 +116,12 @@ class WampRequest:
     def __init__(self, request_type, uri=None, kwargs=None, callback=None, future=None):
         self.request_type = request_type
         self.uri = uri
-        self.kwargs = kwargs
+        self.kwargs = kwargs or {}
         self.callback = callback or self.default_callback
         self.future = future
 
-    def default_callback(self, result):
-        self.future.set_result(result)
+    def default_callback(self, *args, **kwargs):
+        pass
 
 
 class WaapiClientAutobahn(AkComponent):
@@ -163,11 +161,14 @@ class WaapiClientAutobahn(AkComponent):
                     break
                 elif request.request_type is WampRequestType.CALL:
                     self._log("Received CALL, calling " + request.uri)
-                    res = yield from(self.call(request.uri, request.kwargs))
+                    res = yield from(self.call(request.uri, **request.kwargs))
                     self._log("Call sent, received response")
+
+                    result = res.kwresults if res else {}
                     callback = _WampCallbackHandler(request.callback)
-                    callback(**res.kwresults if res else {})
-                    request.future.set_result(request.result_value)
+                    callback(result)
+                    request.future.set_result(result)
+
                 elif request.request_type is WampRequestType.SUBSCRIBE:
                     callback = _WampCallbackHandler(request.callback)
                     res = yield from(self.subscribe(
@@ -177,6 +178,7 @@ class WaapiClientAutobahn(AkComponent):
                     request.future.set_result(res is not None)
             except Exception as e:
                 self._log(pformat(str(e)))
+                request.future.set_result(None if request.request_type is WampRequestType.CALL else False)
 
             self._log("Done treating request!")
 
@@ -192,4 +194,4 @@ class _WampCallbackHandler:
 
     def __call__(self, *args, **kwargs):
         if self._callback and callable(self._callback):
-            self._callback(kwargs)
+            self._callback(**kwargs)
