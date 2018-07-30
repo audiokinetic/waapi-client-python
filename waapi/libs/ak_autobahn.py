@@ -1,6 +1,12 @@
+import six
 import inspect
-from threading import Thread
+from threading import Thread, Event
 from pprint import pformat
+
+# if six.PY2:
+#     from Queue import Queue
+# else:
+#     from queue import Queue
 
 from waapi.libs.async_compatibility import asyncio
 
@@ -18,33 +24,41 @@ from autobahn.wamp.request import Handler, SubscribeRequest
 def runner_init(url, akcomponent_factory, owner, queue_size, loop):
     """
     :type url: str
-    :type akcomponent_factory: () -> WaapiClientAutobahn
+    :type akcomponent_factory: (*Any) -> WaapiClientAutobahn
     :type owner: ClientOwner
     :type queue_size: int
-    :rtype: Thread
+    :rtype: (Thread, Event, asyncio.Queue)
     """
     runner = ApplicationRunner(url=url, realm=u"waapi_client")
 
     request_queue = asyncio.Queue(queue_size)
 
+    # Do not use the asyncio loop, otherwise failure to connect will stop
+    # the loop and the caller will never be notified!
+    connected_event = Event()
     async_client_thread = _WaapiClientThread(
         runner,
         loop,
-        request_queue,
-        akcomponent_factory
+        connected_event,
+        lambda config: akcomponent_factory(config, request_queue, connected_event)
     )
     async_client_thread.start()
 
-    return async_client_thread, request_queue
+    return async_client_thread, connected_event, request_queue
 
 
 class _WaapiClientThread(Thread):
-    def __init__(self, runner, loop, request_queue, akcomponent_factory):
+    def __init__(self, runner, loop, connected_event, akcomponent_factory):
+        """
+        :param runner:
+        :param loop: asyncio.AbstractEventLoop
+        :param connected_event: asyncio.Event
+        :param akcomponent_factory: (config) -> AkComponent
+        """
         super(_WaapiClientThread, self).__init__()
         self._runner = runner
         self._loop = loop
-        """:type: asyncio.AbstractEventLoop"""
-        self._request_queue = request_queue
+        self._connected_event = connected_event
         self._akcomponent_factory = akcomponent_factory
 
     def run(self):
@@ -52,11 +66,15 @@ class _WaapiClientThread(Thread):
             asyncio.set_event_loop(self._loop)
             print("Starting the runner...")
             self._runner.run(
-                lambda config: self._akcomponent_factory(config, self._request_queue))
+                lambda config: self._akcomponent_factory(config))
 
             print("Runner done!")
         except Exception as e:
             print(type(e).__name__ + pformat(e))
+
+            # Wake the caller, this thread will terminate right after so the
+            # error can be detected by checking if the thread is alive
+            self._connected_event.set()
 
 
 class AkCall(Call):

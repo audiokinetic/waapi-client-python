@@ -2,10 +2,14 @@ import logging
 import time
 from enum import Enum
 from pprint import pformat
-from threading import Thread
+from threading import Thread, Event
 
 from waapi.libs.async_compatibility import asyncio, yield_from
 from waapi.libs.ak_autobahn import AkComponent, runner_init
+
+
+class CannotConnectToWaapiException(Exception):
+    pass
 
 
 class ClientOwner:
@@ -26,6 +30,7 @@ class WaapiClient(ClientOwner):
     def __init__(self, url=None):
         """
         :param url: URL of the Waapi server,
+        :raises: CannotConnectToWaapiException
         """
         super(WaapiClient, self).__init__()
 
@@ -33,12 +38,22 @@ class WaapiClient(ClientOwner):
         self._client_thread = None
         """:type: Thread"""
         self._loop = asyncio.get_event_loop()
+        self._connected_event = None
+        """:type: asyncio.Event"""
 
-        self._connect()
+        if not self._connect():
+            raise CannotConnectToWaapiException("Could not connect to " + self._url)
 
     def _connect(self):
         # Arbitrary queue size of 10, for now
-        self._client_thread, self._request_queue = runner_init(self._url, WaapiClientAutobahn, self, 10, self._loop)
+        self._client_thread, self._connected_event, self._request_queue = \
+            runner_init(self._url, WaapiClientAutobahn, self, 10, self._loop)
+
+        # Return upon connection success
+        self._connected_event.wait()
+
+        # A failure is indicated by the runner client thread being terminated
+        return self._client_thread.is_alive()
 
     def disconnect(self):
         """
@@ -50,27 +65,39 @@ class WaapiClient(ClientOwner):
     @classmethod
     def connect(cls, url=None):
         """
-        Factory for uniform API across languages
+        Factory for uniform API across languages.
+        Noexcept, returns None if cannot connect.
+
         :param url: URL of the Waapi server,
-        :return: WaapiClient
+        :return: WaapiClient | None
         """
-        return WaapiClient(url)
+        try:
+            return WaapiClient(url)
+        except CannotConnectToWaapiException:
+            return None
+
+    def call(self, uri, **kwargs):
+        return self.__do_request(WampRequestType.CALL, uri, **kwargs)
+
+    def subscribe(self, uri, callback, **kwargs):
+        return self.__do_request(WampRequestType.SUBSCRIBE, uri, callback, **kwargs)
 
     def __do_request(self, request_type, uri=None, callback=None, **kwargs):
         if not self._client_thread.is_alive():
             return
 
-        request = WampRequest(self._loop, request_type, uri, kwargs, callback)
-        asyncio.run_coroutine_threadsafe(self._request_queue.put(request), self._loop).result()
+        @asyncio.coroutine
+        def _async_request(future):
+            request = WampRequest(request_type, uri, kwargs, callback, future)
+            yield from self._request_queue.put(request)
+            yield from future  # The client worker is responsible for completing the future
 
-        print("WaapiClient: waiting on result_event")
-        asyncio.run_coroutine_threadsafe(request.result_event.wait(), self._loop).result()
-        print("WaapiClient: result_event was set!")
+        forwarded_future = asyncio.Future()
+        asyncio.run_coroutine_threadsafe(_async_request(forwarded_future), self._loop).result()
 
-        return request.result_value
+        return forwarded_future.result()
 
-    def call(self, uri, **kwargs):
-        self.__do_request(WampRequestType.CALL, uri, kwargs)
+
 
     def __del__(self):
         self.disconnect()
@@ -88,38 +115,40 @@ class WampRequestType(Enum):
 
 
 class WampRequest:
-    def __init__(self, loop, request_type, uri=None, kwargs=None, callback=None):
+    def __init__(self, request_type, uri=None, kwargs=None, callback=None, future=None):
         self.request_type = request_type
         self.uri = uri
         self.kwargs = kwargs
-        self.result_event = asyncio.Event(loop=loop)
-        self.result_value = None
-        self.callback = callback
+        self.callback = callback or self.default_callback
+        self.future = future
 
     def default_callback(self, result):
-        self.result_value = result
+        self.future.set_result(result)
 
 
 class WaapiClientAutobahn(AkComponent):
     """
     Implementation class of a Waapi client using the autobahn library
     """
-    def __init__(self, config, request_queue):
+    def __init__(self, config, request_queue, connected_event):
         """
         :param config: Autobahn configuration
         :type queue_size: int
         """
         super(WaapiClientAutobahn, self).__init__(config)
         self._request_queue = request_queue
+        self._connected_event = connected_event
 
     def _log(self, msg):
         _logger.debug("WaapiClientAutobahn: %s", msg)
 
     @asyncio.coroutine
     def onJoin(self, details):
-
         self._log("Joined!")
+        self._connected_event.set()
+
         while True:
+            self._log("About to wait on the queue")
             request = yield from self._request_queue.get()
             """:type: WampRequest"""
             self._log("Received something!")
@@ -129,21 +158,23 @@ class WaapiClientAutobahn(AkComponent):
                     self._log("Received STOP, stopping and setting the result")
                     self.disconnect()
                     self._log("Disconnected")
-                    request.result_event.set()
+                    request.future.set_result(True)
                     self._log("Set the result event")
                     break
                 elif request.request_type is WampRequestType.CALL:
+                    self._log("Received CALL, calling " + request.uri)
                     res = yield from(self.call(request.uri, request.kwargs))
+                    self._log("Call sent, received response")
                     callback = _WampCallbackHandler(request.callback)
                     callback(**res.kwresults if res else {})
-                    request.result_event.set()
+                    request.future.set_result(request.result_value)
                 elif request.request_type is WampRequestType.SUBSCRIBE:
                     callback = _WampCallbackHandler(request.callback)
-                    yield from(self.subscribe(
+                    res = yield from(self.subscribe(
                         callback,
                         topic=request.uri,
                         options=request.kwargs))
-                    request.result_event.set()
+                    request.future.set_result(res is not None)
             except Exception as e:
                 self._log(pformat(str(e)))
 
