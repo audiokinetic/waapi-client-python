@@ -1,4 +1,3 @@
-import time
 from copy import copy
 
 from waapi.event import EventHandler

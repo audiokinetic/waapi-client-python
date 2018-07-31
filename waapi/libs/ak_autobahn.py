@@ -82,11 +82,8 @@ class _WaapiClientThread(Thread):
     def run(self):
         try:
             asyncio.set_event_loop(self._loop)
-            print("Starting the runner...")
             self._runner.run(
                 lambda config: self._akcomponent_factory(config))
-
-            print("Runner done!")
         except Exception as e:
             print(type(e).__name__ + pformat(e))
 

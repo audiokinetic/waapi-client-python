@@ -7,26 +7,29 @@ from waapi.interface import WampRequestType, WampRequest
 from waapi.libs.ak_autobahn import AkComponent
 from waapi.libs.async_compatibility import asyncio, yield_from
 
-_logger = logging.getLogger("WaapiClientAutobahn")
-_logger.setLevel(logging.DEBUG)
-_logger.hasHandlers()
-
 
 class WaapiClientAutobahn(AkComponent):
     """
     Implementation class of a Waapi client using the autobahn library
     """
+    logger = logging.getLogger("WaapiClientAutobahn")
+
+    # Uncomment for debug messages
+    # logger.setLevel(logging.DEBUG)
+
     def __init__(self, config, request_queue, connected_event):
         """
         :param config: Autobahn configuration
-        :type queue_size: int
+        :type request_queue: asyncio.Queue
+        :type connected_event: threading.Event
         """
         super(WaapiClientAutobahn, self).__init__(config)
         self._request_queue = request_queue
         self._connected_event = connected_event
 
-    def _log(self, msg):
-        _logger.debug("WaapiClientAutobahn: %s", msg)
+    @classmethod
+    def _log(cls, msg):
+        cls.logger.debug("WaapiClientAutobahn: %s", msg)
 
     @asyncio.coroutine
     def stop_handler(self, request):
