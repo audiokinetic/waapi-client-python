@@ -1,6 +1,8 @@
 import logging
 from pprint import pformat
 
+from autobahn.wamp import ApplicationError
+
 from waapi.interface import WampRequestType, WampRequest
 from waapi.libs.ak_autobahn import AkComponent
 from waapi.libs.async_compatibility import asyncio, yield_from
@@ -50,41 +52,59 @@ class WaapiClientAutobahn(AkComponent):
     def subscribe_handler(self, request):
         self._log("Received SUBSCRIBE, subscribing to " + request.uri)
         callback = _WampCallbackHandler(request.callback)
-        res = yield from (self.subscribe(
+        subscription = yield from (self.subscribe(
             callback,
             topic=request.uri,
             options=request.kwargs)
         )
-        request.future.set_result(res is not None)
+        request.future.set_result(subscription)
+
+    @asyncio.coroutine
+    def unsubscribe_handler(self, request):
+        self._log("Received UNSUBSCRIBE, unsubscribing from " + str(request.subscription))
+        try:
+            # Successful unsubscribe returns nothing
+            yield from request.subscription.unsubscribe()
+            request.future.set_result(True)
+        except ApplicationError:
+            request.future.set_result(False)
+        except Exception as e:
+            self._log(str(e))
+            request.future.set_result(False)
 
     @asyncio.coroutine
     def onJoin(self, details):
         self._log("Joined!")
         self._connected_event.set()
 
-        while True:
-            self._log("About to wait on the queue")
-            request = yield from self._request_queue.get()
-            """:type: WampRequest"""
-            self._log("Received something!")
+        try:
+            while True:
+                self._log("About to wait on the queue")
+                request = yield from self._request_queue.get()
+                """:type: WampRequest"""
+                self._log("Received something!")
 
-            try:
-                handler = {
-                    WampRequestType.STOP: lambda request: self.stop_handler(request),
-                    WampRequestType.CALL: lambda request: self.call_handler(request),
-                    WampRequestType.SUBSCRIBE: lambda request: self.subscribe_handler(request)
-                }.get(request.request_type)
+                try:
+                    handler = {
+                        WampRequestType.STOP: lambda request: self.stop_handler(request),
+                        WampRequestType.CALL: lambda request: self.call_handler(request),
+                        WampRequestType.SUBSCRIBE: lambda request: self.subscribe_handler(request),
+                        WampRequestType.UNSUBSCRIBE: lambda request: self.unsubscribe_handler(request)
+                    }.get(request.request_type)
 
-                if handler:
-                    yield from handler(request)
-                else:
-                    self._log("Undefined WampRequestType")
+                    if handler:
+                        yield from handler(request)
+                    else:
+                        self._log("Undefined WampRequestType")
 
-            except Exception as e:
-                self._log(pformat(str(e)))
-                request.future.set_result(None if request.request_type is WampRequestType.CALL else False)
+                except Exception as e:
+                    self._log(pformat(str(e)))
+                    request.future.set_result(None)
 
-            self._log("Done treating request")
+                self._log("Done treating request")
+        except RuntimeError:
+            # The loop has been shut down by a disconnect
+            pass
 
     def onDisconnect(self):
         self._log("The client was disconnected.")

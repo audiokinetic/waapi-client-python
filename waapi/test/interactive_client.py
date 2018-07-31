@@ -1,6 +1,7 @@
 import time
 from pprint import pprint
 
+from waapi.event import EventHandler
 from waapi.client import WaapiClient
 
 client = WaapiClient.connect()
@@ -14,6 +15,8 @@ assert(client.is_connected())
 
 print("Ready!")
 
+event_handlers = []
+
 todo = None
 while True:
     todo = input("What do you want to do? ")
@@ -25,6 +28,7 @@ while True:
         print("* sel")
         print("* project")
         print("* note(w)")
+        print("* unsub")
         print("* quit/exit")
     elif todo == "getinfo":
         response = client.call("ak.wwise.core.getInfo")
@@ -33,10 +37,13 @@ while True:
         def sel_changed(**kwargs):
             print("Selection changed!")
 
-        response = client.subscribe("ak.wwise.ui.selectionChanged", sel_changed)
-        print("Subscribe succeeded" if response else "Subscribe failed!")
+        handler = client.subscribe("ak.wwise.ui.selectionChanged", sel_changed)
+        print("Subscribe succeeded" if handler else "Subscribe failed!")
+        print(handler)
+        event_handlers.append(handler)
+
     elif todo == "project":
-        args = {
+        myargs = {
             "from": {
                 "ofType": [
                     "Project"
@@ -50,7 +57,7 @@ while True:
                 ]
             }
         }
-        response = client.call("ak.wwise.core.object.get", **args)
+        response = client.call("ak.wwise.core.object.get", **myargs)
         pprint(response)
     elif todo.startswith("note"):
         def notes_changed_unwrapped(object, newNotes, oldNotes):
@@ -63,11 +70,39 @@ while True:
             print("Notes changed (callback with wrapped)!")
             pprint(kwargs)
 
-        response = client.subscribe(
+        handler = client.subscribe(
             "ak.wwise.core.object.notesChanged",
             notes_changed_wrapped if todo.endswith("w") else notes_changed_unwrapped,
             **{"return": ["name"]}
         )
+        print("Subscribe succeeded" if handler else "Subscribe failed!")
+        print(handler)
+        event_handlers.append(handler)
+    elif todo == "unsub":
+        for sub in client.subscriptions():
+            res = sub.unsubscribe()  # or client.unsubscribe(sub)
+            print(("Successfully unsubscribed" if res else "Failed to unsubscribe") + " from " + str(sub))
+
+    elif todo == "eh":  # Event Handler subclass
+        class MyEventHandler(EventHandler):
+            def on_event(self, *args, **kwargs):
+                print("MyEventHandler callback!")
+
+        print("Testing callback...")
+        event_handler = MyEventHandler()
+        event_handler()
+        print("Testing done.")
+        handler = client.subscribe("ak.wwise.core.object.created", event_handler)
+        print(("Successfully subscribed" if handler else "Failed to subscribe") + " to ak.wwise.core.object.created")
+
+    elif todo == "rebind":
+        def rebound_callback(*args, **kwargs):
+            print("Rebound placeholder callback!")
+            pprint(args)
+            pprint(kwargs)
+
+        for sub in client.subscriptions():
+            sub.bind(rebound_callback)
 
     elif todo == "quit" or todo == "exit":
         break

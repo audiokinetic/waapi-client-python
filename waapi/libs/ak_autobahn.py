@@ -3,11 +3,6 @@ import inspect
 from threading import Thread, Event
 from pprint import pformat
 
-# if six.PY2:
-#     from Queue import Queue
-# else:
-#     from queue import Queue
-
 from waapi.libs.async_compatibility import asyncio
 
 import txaio

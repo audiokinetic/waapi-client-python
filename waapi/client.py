@@ -1,10 +1,13 @@
+from copy import copy
+
+from waapi.event import EventHandler
 from waapi.async_decoupled_client import WaapiClientAutobahn
-from waapi.interface import WampRequest, WampRequestType, CannotConnectToWaapiException
+from waapi.interface import WampRequest, WampRequestType, CannotConnectToWaapiException, UnsubscribeHandler
 from waapi.libs.async_compatibility import asyncio, yield_from
 from waapi.libs.ak_autobahn import runner_init
 
 
-class WaapiClient:
+class WaapiClient(UnsubscribeHandler):
     """
     Synchronous Waapi client
     """
@@ -38,6 +41,9 @@ class WaapiClient:
         self._request_queue = None
         """:type: asyncio.Queue"""
 
+        self._subscriptions = set()
+        """:type: set[EventHandler]"""
+
         if not self._connect():
             raise CannotConnectToWaapiException("Could not connect to " + self._url)
 
@@ -59,6 +65,7 @@ class WaapiClient:
         """
         self.__do_request(WampRequestType.STOP)
         self._request_queue = None
+        self._subscriptions.clear()  # No need to unsubscribe, subscriptions will be dropped anyways
 
     def is_connected(self):
         return self._connected_event.is_set() and self._client_thread.is_alive()
@@ -66,16 +73,42 @@ class WaapiClient:
     def call(self, uri, **kwargs):
         return self.__do_request(WampRequestType.CALL, uri, **kwargs)
 
-    def subscribe(self, uri, callback, **kwargs):
-        return self.__do_request(WampRequestType.SUBSCRIBE, uri, callback, **kwargs)
+    def subscribe(self, uri, callback_or_handler=None, **kwargs):
+        """
+        :rtype: callable | EventHandler
+        :rtype: EventHandler | None
+        """
+        if callback_or_handler is not None and isinstance(callback_or_handler, EventHandler):
+            event_handler = callback_or_handler
+        else:
+            event_handler = EventHandler(self, callback_or_handler)
 
-    def __do_request(self, request_type, uri=None, callback=None, **kwargs):
+        subscription = self.__do_request(WampRequestType.SUBSCRIBE, uri, event_handler.on_event, **kwargs)
+        if subscription is not None:
+            event_handler.subscription = subscription
+            event_handler.unsubscribe_handler = self
+            self._subscriptions.add(event_handler)
+            return event_handler
+
+    def unsubscribe(self, event_handler):
+        if event_handler not in self._subscriptions:
+            return
+
+        success = self.__do_request(WampRequestType.UNSUBSCRIBE, subscription=event_handler.subscription)
+        if success:
+            self._subscriptions.remove(event_handler)
+        return success
+
+    def subscriptions(self):
+        return copy(self._subscriptions)
+
+    def __do_request(self, request_type, uri=None, callback=None, subscription=None, **kwargs):
         if not self._client_thread.is_alive():
             return
 
         @asyncio.coroutine
         def _async_request(future):
-            request = WampRequest(request_type, uri, kwargs, callback, future)
+            request = WampRequest(request_type, uri, kwargs, callback, subscription, future)
             yield from self._request_queue.put(request)
             yield from future  # The client worker is responsible for completing the future
 
