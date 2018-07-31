@@ -2,14 +2,14 @@ import time
 from pprint import pprint
 
 from waapi.event import EventHandler
-from waapi.client import WaapiClient
+from waapi.client import WaapiClient, connect
 
-client = WaapiClient.connect()
+client = connect()
 
 while not client:
     print("Cannot connect, retrying in 1 second...")
     time.sleep(1)
-    client = WaapiClient.connect()
+    client = connect()
 
 assert(client.is_connected())
 

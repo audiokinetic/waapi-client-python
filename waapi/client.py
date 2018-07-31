@@ -1,3 +1,4 @@
+import time
 from copy import copy
 
 from waapi.event import EventHandler
@@ -7,24 +8,24 @@ from waapi.libs.async_compatibility import asyncio, yield_from
 from waapi.libs.ak_autobahn import runner_init
 
 
+def connect(url=None):
+    """
+    Factory for uniform API across languages.
+    Noexcept, returns None if cannot connect.
+
+    :param url: URL of the Waapi server,
+    :return: WaapiClient | None
+    """
+    try:
+        return WaapiClient(url)
+    except CannotConnectToWaapiException:
+        return None
+
+
 class WaapiClient(UnsubscribeHandler):
     """
     Synchronous Waapi client
     """
-    @classmethod
-    def connect(cls, url=None):
-        """
-        Factory for uniform API across languages.
-        Noexcept, returns None if cannot connect.
-
-        :param url: URL of the Waapi server,
-        :return: WaapiClient | None
-        """
-        try:
-            return WaapiClient(url)
-        except CannotConnectToWaapiException:
-            return None
-
     def __init__(self, url=None):
         """
         :param url: URL of the Waapi server,
@@ -36,6 +37,7 @@ class WaapiClient(UnsubscribeHandler):
         self._client_thread = None
         """:type: Thread"""
         self._loop = asyncio.get_event_loop()
+
         self._connected_event = None
         """:type: Event"""
         self._request_queue = None
@@ -63,9 +65,19 @@ class WaapiClient(UnsubscribeHandler):
         """
         Disconnect through WampRequestType.STOP
         """
+        if not self.is_connected():
+            return
+
         self.__do_request(WampRequestType.STOP)
         self._request_queue = None
         self._subscriptions.clear()  # No need to unsubscribe, subscriptions will be dropped anyways
+
+        # Wait for the runner thread to gracefully exit and the asyncio loop to close
+        self._client_thread.join()
+
+        assert(asyncio.get_event_loop().is_closed())
+        # Create a new loop for upcoming uses
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
     def is_connected(self):
         return self._connected_event.is_set() and self._client_thread.is_alive()

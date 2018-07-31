@@ -44,6 +44,7 @@ def runner_init(url, akcomponent_factory, queue_size, loop):
     :type url: str
     :type akcomponent_factory: (*Any) -> WaapiClientAutobahn
     :type queue_size: int
+    :param loop: asyncio.AbstractEventLoop
     :rtype: (Thread, Event, asyncio.Queue)
     """
     runner = ApplicationRunner(url=url, realm=u"waapi_client")
