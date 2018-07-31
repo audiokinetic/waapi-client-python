@@ -94,10 +94,15 @@ class WaapiClient(UnsubscribeHandler):
         else:
             event_handler = EventHandler(self, callback_or_handler)
 
-        subscription = self.__do_request(WampRequestType.SUBSCRIBE, uri, event_handler.on_event, **kwargs)
+        subscription = self.__do_request(
+            WampRequestType.SUBSCRIBE,
+            uri,
+            event_handler.on_event,
+            **kwargs
+        )
         if subscription is not None:
             event_handler.subscription = subscription
-            event_handler.unsubscribe_handler = self
+            event_handler._unsubscribe_handler = self
             self._subscriptions.add(event_handler)
             return event_handler
 
@@ -116,6 +121,9 @@ class WaapiClient(UnsubscribeHandler):
     def __do_request(self, request_type, uri=None, callback=None, subscription=None, **kwargs):
         if not self._client_thread.is_alive():
             return
+
+        # Make sure the current thread has the event loop set
+        asyncio.set_event_loop(self._loop)
 
         @asyncio.coroutine
         def _async_request(future):

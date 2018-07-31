@@ -1,3 +1,5 @@
+from autobahn.wamp.request import Subscription
+
 from waapi.interface import UnsubscribeHandler
 
 
@@ -10,7 +12,7 @@ class EventHandler:
         :param unsubscribe_handler: UnsubscribeHandler
         :param callback: (Any) -> None
         """
-        self.unsubscribe_handler = unsubscribe_handler
+        self._unsubscribe_handler = unsubscribe_handler
         self._callback = callback
         self._subscription = None
 
@@ -20,21 +22,21 @@ class EventHandler:
 
     @subscription.setter
     def subscription(self, value):
-        if value is not None:
+        if value is not None and isinstance(value, Subscription):
             self._subscription = value
 
     def unsubscribe(self):
-        if not self.unsubscribe_handler:
+        if not self._unsubscribe_handler:
             return False
 
-        return self.unsubscribe_handler.unsubscribe(self)
+        return self._unsubscribe_handler.unsubscribe(self)
 
     def on_event(self, *args, **kwargs):
         if self._callback:
             self._callback(*args, **kwargs)
 
     def bind(self, callback):
-        if self._callback and callable(self._callback):
+        if callback and callable(callback):
             self._callback = callback
             return self
 

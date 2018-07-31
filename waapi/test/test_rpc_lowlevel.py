@@ -3,12 +3,14 @@ import unittest
 from waapi import WaapiClient
 
 
-class TestRpcLowLevel(unittest.TestCase):
-    def setUp(self):
-        self.client = WaapiClient()
+class RpcLowLevel(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.client = WaapiClient()
 
-    def tearDown(self):
-        self.client.disconnect()
+    @classmethod
+    def tearDownClass(cls):
+        cls.client.disconnect()
 
     def test_invalid(self):
         result = self.client.call("ak.wwise.idontexist")

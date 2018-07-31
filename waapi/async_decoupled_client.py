@@ -1,5 +1,6 @@
 import logging
 from pprint import pformat
+from threading import Thread
 
 from autobahn.wamp import ApplicationError
 
@@ -44,7 +45,7 @@ class WaapiClientAutobahn(AkComponent):
     @asyncio.coroutine
     def call_handler(self, request):
         self._log("Received CALL, calling " + request.uri)
-        res = yield from (self.call(request.uri, **request.kwargs))
+        res = yield from self.call(request.uri, **request.kwargs)
         self._log("Received response for call")
         result = res.kwresults if res else {}
         callback = _WampCallbackHandler(request.callback)
@@ -126,4 +127,6 @@ class _WampCallbackHandler:
 
     def __call__(self, *args, **kwargs):
         if self._callback and callable(self._callback):
-            self._callback(**kwargs)
+            # Use a proper thread so that we can nest calls without blocking in the event loop
+            # TODO: Consider using a ThreadPool rather than instantiating a thread each time
+            Thread(target=lambda: self._callback(**kwargs)).start()

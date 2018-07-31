@@ -3,7 +3,7 @@ import unittest
 from waapi import WaapiClient, connect
 
 
-class TestConnection(unittest.TestCase):
+class Connection(unittest.TestCase):
     def test_connect_constructor(self):
         client = WaapiClient()
         self.assertIsNotNone(client)
