@@ -26,6 +26,10 @@ class EventHandler:
             self._subscription = value
 
     def unsubscribe(self):
+        """
+        :return: True if the EventHandler was unsubscribed successfully, False otherwise.
+        :rtype: bool
+        """
         if not self._unsubscribe_handler:
             return False
 

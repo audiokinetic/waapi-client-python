@@ -19,7 +19,7 @@ class SubscribeLowLevel(unittest.TestCase):
     def tearDown(self):
         # Make sure there is no subscriptions before any test
         for sub in self.client.subscriptions():
-            sub.unsubscribe()
+            self.assertTrue(sub.unsubscribe())
 
     def _create_object(self):
         return self.client.call(
@@ -91,3 +91,29 @@ class SubscribeLowLevel(unittest.TestCase):
         self.assertEqual(callback_counter.count(), 1)
 
         self.assertIsNotNone(self._delete_object())
+
+    def test_subscribe_with_arguments(self):
+        # Precondition: No object
+        self._delete_object()
+
+        event = Event()
+
+        def on_object_created(object):
+            self.assertIn("id", object)
+            self.assertIn("isPlayable", object)
+            self.assertIn("classId", object)
+
+            event.set()
+
+        handler = self.client.subscribe(
+            "ak.wwise.core.object.created",
+            on_object_created,
+            **{
+                "return": ["id", "isPlayable", "classId"]
+            }
+        )
+
+        self.assertIsNotNone(self._create_object())
+        event.wait()
+        self.assertIsNotNone(self._delete_object())
+        self.assertTrue(handler.unsubscribe())
