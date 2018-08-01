@@ -85,6 +85,39 @@ class SubscribeLowLevel(CleanConnectedClientTestCase):
         )
 
         self.assertIsNotNone(self._create_object())
-        event.wait(self.TIMEOUT_VALUE)
+        self.assertTrue(event.wait(self.TIMEOUT_VALUE))
         self.assertIsNotNone(self._delete_object())
         self.assertTrue(handler.unsubscribe())
+
+    def test_subscribe_lambda(self):
+        self._delete_object()
+
+        event = Event()
+
+        self.client.subscribe("ak.wwise.core.object.created", lambda object: event.set())
+        self._create_object()
+
+        self.assertTrue(event.wait(self.TIMEOUT_VALUE))
+        self._delete_object()
+
+    def test_unsubscribed_not_subscribed(self):
+        handler = self.client.subscribe("ak.wwise.core.object.created")
+        self.assertIsNotNone(handler)
+        self.assertTrue(handler.unsubscribe())
+        self.assertFalse(handler.unsubscribe())
+
+    def test_cannot_bind_not_callable(self):
+        handler = self.client.subscribe("ak.wwise.core.object.created")
+        self.assertIsNotNone(handler)
+        self.assertIsNone(handler.bind(None))
+
+        class NotCallable:
+            pass
+        self.assertIsNone(handler.bind(NotCallable()))
+
+    def test_no_callback_valid(self):
+        self._delete_object()
+        self.client.subscribe("ak.wwise.core.object.created")
+        self._create_object()
+        # No exception: the callback wrapper ignored the publish
+        self._delete_object()

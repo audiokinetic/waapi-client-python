@@ -49,13 +49,28 @@ class EventHandler:
         return self._unsubscribe_handler.unsubscribe(self)
 
     def on_event(self, *args, **kwargs):
+        """
+        Callback on reception of an event related to the subscribed topic
+        """
         if self._callback:
             self._callback(*args, **kwargs)
 
     def bind(self, callback):
+        """
+        Bind a callable callback to this EventHandler instance that is called by on_event by default.
+        When subclassing this class, make sure to define the behavior of this function with regards to how on_event
+        behaves.
+
+        :type callback: callable | None
+        :return: self if the callback was correctly set, None otherwise.
+        :rtype: self | None
+        """
         if callback and callable(callback):
             self._callback = callback
             return self
 
     def __call__(self, *args, **kwargs):
+        """
+        Delegate to on_event
+        """
         self.on_event(*args, **kwargs)

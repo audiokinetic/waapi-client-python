@@ -1,7 +1,7 @@
 from waapi.test.fixture import ConnectedClientTestCase
 
 
-class SubscribeLowLevel(ConnectedClientTestCase):
+class RpcLowLevel(ConnectedClientTestCase):
     def test_invalid(self):
         result = self.client.call("ak.wwise.idontexist")
         self.assertIs(result, None)  # Noexcept

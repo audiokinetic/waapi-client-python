@@ -180,7 +180,7 @@ class WaapiClient(UnsubscribeHandler):
         :rtype: bool
         """
         if event_handler not in self._subscriptions:
-            return
+            return False
 
         success = self.__do_request(WampRequestType.UNSUBSCRIBE, subscription=event_handler.subscription)
         if success:
@@ -203,9 +203,9 @@ class WaapiClient(UnsubscribeHandler):
         :type uri: str | None
         :type callback: (*Any) -> None | None
         :type subscription: Subscription | None
-        :return: Result from WampRequest
+        :return: Result from WampRequest, None if request failed.
+        :rtype: dict | None
         """
-
         if not self._client_thread.is_alive():
             return
 
