@@ -4,12 +4,12 @@ from threading import Thread
 
 from autobahn.wamp import ApplicationError
 
-from waapi.interface import WampRequestType, WampRequest
+from waapi.libs.interface import WampRequestType
 from waapi.libs.ak_autobahn import AkComponent
 from waapi.libs.async_compatibility import asyncio
 
 
-class WaapiClientAutobahn(AkComponent):
+class WampClientAutobahn(AkComponent):
     """
     Implementation class of a Waapi client using the autobahn library
     """
@@ -18,15 +18,13 @@ class WaapiClientAutobahn(AkComponent):
     # Uncomment for debug messages
     # logger.setLevel(logging.DEBUG)
 
-    def __init__(self, config, connected_event, request_queue):
+    def __init__(self, config, decoupler):
         """
         :param config: Autobahn configuration
-        :type connected_event: threading.Event
-        :type request_queue: asyncio.Queue
+        :type decoupler: AutobahnClientDecoupler
         """
-        super(WaapiClientAutobahn, self).__init__(config)
-        self._connected_event = connected_event
-        self._request_queue = request_queue
+        super(WampClientAutobahn, self).__init__(config)
+        self._decoupler = decoupler
 
     @classmethod
     def _log(cls, msg):
@@ -81,12 +79,12 @@ class WaapiClientAutobahn(AkComponent):
     @asyncio.coroutine
     def onJoin(self, details):
         self._log("Joined!")
-        self._connected_event.set()
+        self._decoupler.set_joined()
 
         try:
             while True:
                 self._log("About to wait on the queue")
-                request = yield from self._request_queue.get()
+                request = yield from self._decoupler.get_request()
                 """:type: WampRequest"""
                 self._log("Received something!")
 

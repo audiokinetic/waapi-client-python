@@ -1,6 +1,5 @@
 from threading import Event
 
-from waapi import EventHandler
 from waapi.test.fixture import CleanConnectedClientTestCase
 
 

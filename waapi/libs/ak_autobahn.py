@@ -6,7 +6,6 @@ from pprint import pformat
 from waapi.libs.async_compatibility import asyncio
 
 import txaio
-txaio.use_asyncio()
 
 from autobahn import util
 from autobahn.wamp import exception, types, uri
@@ -18,26 +17,37 @@ from autobahn.wamp.request import Handler, SubscribeRequest
 
 class AutobahnClientDecoupler:
     """
-    Decoupler for an autobahn client
+    Decoupler for an autobahn client that indicates when the connection has been made and
+    manages a queue for requests (WampRequest)
     """
     def __init__(self, queue_size):
         self._request_queue = asyncio.Queue(queue_size)
-        self._connected_event = Event()
 
-    def wait_for_connection(self):
-        self._connected_event.wait()
+        # Do not use the asyncio loop, otherwise failure to connect will stop
+        # the loop and the caller will never be notified!
+        self._joined_event = Event()
+
+    def wait_for_joined(self):
+        self._joined_event.wait()
+
+    def set_joined(self):
+        self._joined_event.set()
+
+    def has_joined(self):
+        return self._joined_event.is_set()
 
     def put_request(self, request):
         """
-        Put a WampRequest in the decoupled client processing queue
+        Put a WampRequest in the decoupled client processing queue as a coroutine
         :type request: WampRequest
+        :return: Generator that completes when the queue can accept the request
         """
-        self._request_queue.put(request)
+        return self._request_queue.put(request)
 
     def get_request(self):
         """
-        Get a WampRequest from the decoupled client processing queue
-        :rtype: WampRequest
+        Get a WampRequest from the decoupled client processing queue as a coroutine
+        :return: Generator to a WampRequest when one is available
         """
         return self._request_queue.get()
 
@@ -47,54 +57,53 @@ def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
     Initialize a WAMP client runner in a separate thread with the provided asyncio loop
 
     :type url: str
-    :type akcomponent_factory: (config, Event, asyncio.Queue) -> AkComponent
+    :type akcomponent_factory: (config, AutobahnClientDecoupler) -> AkComponent
     :type queue_size: int
     :type loop: asyncio.AbstractEventLoop
-    :rtype: (Thread, Event, asyncio.Queue)
+    :rtype: (Thread, AutobahnClientDecoupler)
     """
-    runner = ApplicationRunner(url=url, realm=u"waapi_client")
+    runner = ApplicationRunner(url=url, realm=u"realm1")
+    decoupler = AutobahnClientDecoupler(queue_size)
 
-    request_queue = asyncio.Queue(queue_size)
-
-    # Do not use the asyncio loop, otherwise failure to connect will stop
-    # the loop and the caller will never be notified!
-    connected_event = Event()
     async_client_thread = _WampClientThread(
         runner,
         loop,
-        connected_event,
-        lambda config: akcomponent_factory(config, connected_event, request_queue)
+        decoupler,
+        akcomponent_factory
     )
     async_client_thread.start()
 
-    return async_client_thread, connected_event, request_queue
+    return async_client_thread, decoupler
 
 
 class _WampClientThread(Thread):
-    def __init__(self, runner, loop, connected_event, akcomponent_factory):
+    def __init__(self, runner, loop, decoupler, akcomponent_factory):
         """
-        :param runner:
-        :param loop: asyncio.AbstractEventLoop
-        :param connected_event: asyncio.Event
-        :param akcomponent_factory: (config) -> AkComponent
+        WAMP client thread that runs the asyncio main event loop
+        Do NOT terminate this thread to stop the client: use the decoupler to send a STOP request.
+
+        :type runner: ApplicationRunner
+        :type loop: asyncio.AbstractEventLoop
+        :type decoupler: AutobahnClientDecoupler
+        :type akcomponent_factory: (config, AutobahnClientDecoupler) -> AkComponent
         """
         super(_WampClientThread, self).__init__()
         self._runner = runner
         self._loop = loop
-        self._connected_event = connected_event
+        self._decoupler = decoupler
         self._akcomponent_factory = akcomponent_factory
 
     def run(self):
         try:
             asyncio.set_event_loop(self._loop)
             self._runner.run(
-                lambda config: self._akcomponent_factory(config))
+                lambda config: self._akcomponent_factory(config, self._decoupler))
         except Exception as e:
             print(type(e).__name__ + pformat(e))
 
             # Wake the caller, this thread will terminate right after so the
             # error can be detected by checking if the thread is alive
-            self._connected_event.set()
+            self._decoupler.set_connected()
 
 
 class AkCall(Call):

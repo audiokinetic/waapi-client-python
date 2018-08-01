@@ -1,8 +1,7 @@
 import time
 from pprint import pprint
 
-from waapi.event import EventHandler
-from waapi.client import WaapiClient, connect
+from waapi import EventHandler, connect
 
 client = connect()
 
