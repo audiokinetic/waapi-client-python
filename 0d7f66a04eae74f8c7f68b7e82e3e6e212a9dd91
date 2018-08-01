@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0a05b6dc_c2e44758",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2018-08-01T19:33:02Z",
+      "side": 1,
+      "message": "Gulp, I let pipenv set it for me and it used my version. Fixed.",
+      "parentUuid": "dba73d90_515819cd",
+      "range": {
+        "startLine": 5,
+        "startChar": 2,
+        "endLine": 5,
+        "endChar": 13
+      },
+      "revId": "0d7f66a04eae74f8c7f68b7e82e3e6e212a9dd91",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69f9fac2_1d2d4066",
         "filename": "README.md",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e8f8a6c8_5cb43b26",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2018-08-01T19:33:02Z",
+      "side": 1,
+      "message": "Great idea, it is neater indeed.",
+      "parentUuid": "69f9fac2_1d2d4066",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 8
+      },
+      "revId": "0d7f66a04eae74f8c7f68b7e82e3e6e212a9dd91",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6581713_a5dd9c6f",
         "filename": "README.md",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2018-08-01T19:18:56Z",
       "side": 1,
       "message": "Group these commands inside a single ``` block",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 24
+      },
+      "revId": "0d7f66a04eae74f8c7f68b7e82e3e6e212a9dd91",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "407dd708_8ae601e0",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2018-08-01T19:33:02Z",
+      "side": 1,
+      "message": "Except it\u0027s one or the other, perhaps that\u0027s not clear.",
+      "parentUuid": "b6581713_a5dd9c6f",
       "range": {
         "startLine": 17,
         "startChar": 0,
