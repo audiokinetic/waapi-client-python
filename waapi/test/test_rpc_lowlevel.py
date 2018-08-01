@@ -1,17 +1,7 @@
-import unittest
-
-from waapi import WaapiClient
+from waapi.test.fixture import ConnectedClientTestCase
 
 
-class RpcLowLevel(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.client = WaapiClient()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.client.disconnect()
-
+class SubscribeLowLevel(ConnectedClientTestCase):
     def test_invalid(self):
         result = self.client.call("ak.wwise.idontexist")
         self.assertIs(result, None)  # Noexcept

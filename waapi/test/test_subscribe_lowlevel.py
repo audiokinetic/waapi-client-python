@@ -1,39 +1,10 @@
-import unittest
 from threading import Event
 
-from waapi import WaapiClient, EventHandler
+from waapi import EventHandler
+from waapi.test.fixture import CleanConnectedClientTestCase
 
 
-class SubscribeLowLevel(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.client = WaapiClient()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.client.disconnect()
-
-    def setUp(self):
-        self.assertEqual(len(self.client.subscriptions()), 0)
-
-    def tearDown(self):
-        # Make sure there is no subscriptions before any test
-        for sub in self.client.subscriptions():
-            self.assertTrue(sub.unsubscribe())
-
-    def _create_object(self):
-        return self.client.call(
-            "ak.wwise.core.object.create",
-            parent="\\Actor-Mixer Hierarchy\\Default Work Unit",
-            type="Sound",
-            name="Some Name"
-        )
-
-    def _delete_object(self):
-        return self.client.call(
-            "ak.wwise.core.object.delete",
-            object="\\Actor-Mixer Hierarchy\\Default Work Unit\\Some Name"
-        )
+class SubscribeLowLevel(CleanConnectedClientTestCase):
 
     def test_invalid(self):
         handler = self.client.subscribe("ak.wwise.idontexist")
@@ -58,7 +29,7 @@ class SubscribeLowLevel(unittest.TestCase):
         self.assertTrue(handler.unsubscribe())
         self.assertEqual(len(self.client.subscriptions()), 0)
 
-    def test_subscribe_no_argument_bound_callback(self):
+    def test_subscribe_no_options_bound_callback(self):
         # Precondition: No object
         self._delete_object()
 
@@ -70,7 +41,7 @@ class SubscribeLowLevel(unittest.TestCase):
                 self._event = Event()
 
             def wait_for_increment(self):
-                self._event.wait()
+                self._event.wait(CleanConnectedClientTestCase.TIMEOUT_VALUE)
                 self._event.clear()
 
             def increment(self, *args, **kwargs):
@@ -92,7 +63,7 @@ class SubscribeLowLevel(unittest.TestCase):
 
         self.assertIsNotNone(self._delete_object())
 
-    def test_subscribe_with_arguments(self):
+    def test_subscribe_with_options(self):
         # Precondition: No object
         self._delete_object()
 
@@ -114,6 +85,6 @@ class SubscribeLowLevel(unittest.TestCase):
         )
 
         self.assertIsNotNone(self._create_object())
-        event.wait()
+        event.wait(self.TIMEOUT_VALUE)
         self.assertIsNotNone(self._delete_object())
         self.assertTrue(handler.unsubscribe())
