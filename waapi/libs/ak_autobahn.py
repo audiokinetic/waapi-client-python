@@ -17,6 +17,9 @@ from autobahn.wamp.request import Handler, SubscribeRequest
 
 
 class AutobahnClientDecoupler:
+    """
+    Decoupler for an autobahn client
+    """
     def __init__(self, queue_size):
         self._request_queue = asyncio.Queue(queue_size)
         self._connected_event = Event()
@@ -39,12 +42,14 @@ class AutobahnClientDecoupler:
         return self._request_queue.get()
 
 
-def runner_init(url, akcomponent_factory, queue_size, loop):
+def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
     """
+    Initialize a WAMP client runner in a separate thread with the provided asyncio loop
+
     :type url: str
-    :type akcomponent_factory: (*Any) -> WaapiClientAutobahn
+    :type akcomponent_factory: (config, Event, asyncio.Queue) -> AkComponent
     :type queue_size: int
-    :param loop: asyncio.AbstractEventLoop
+    :type loop: asyncio.AbstractEventLoop
     :rtype: (Thread, Event, asyncio.Queue)
     """
     runner = ApplicationRunner(url=url, realm=u"waapi_client")
@@ -54,18 +59,18 @@ def runner_init(url, akcomponent_factory, queue_size, loop):
     # Do not use the asyncio loop, otherwise failure to connect will stop
     # the loop and the caller will never be notified!
     connected_event = Event()
-    async_client_thread = _WaapiClientThread(
+    async_client_thread = _WampClientThread(
         runner,
         loop,
         connected_event,
-        lambda config: akcomponent_factory(config, request_queue, connected_event)
+        lambda config: akcomponent_factory(config, connected_event, request_queue)
     )
     async_client_thread.start()
 
     return async_client_thread, connected_event, request_queue
 
 
-class _WaapiClientThread(Thread):
+class _WampClientThread(Thread):
     def __init__(self, runner, loop, connected_event, akcomponent_factory):
         """
         :param runner:
@@ -73,7 +78,7 @@ class _WaapiClientThread(Thread):
         :param connected_event: asyncio.Event
         :param akcomponent_factory: (config) -> AkComponent
         """
-        super(_WaapiClientThread, self).__init__()
+        super(_WampClientThread, self).__init__()
         self._runner = runner
         self._loop = loop
         self._connected_event = connected_event

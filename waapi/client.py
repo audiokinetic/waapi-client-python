@@ -3,8 +3,8 @@ from copy import copy
 from waapi.event import EventHandler
 from waapi.async_decoupled_client import WaapiClientAutobahn
 from waapi.interface import WampRequest, WampRequestType, CannotConnectToWaapiException, UnsubscribeHandler
-from waapi.libs.async_compatibility import asyncio, yield_from
-from waapi.libs.ak_autobahn import runner_init
+from waapi.libs.async_compatibility import asyncio
+from waapi.libs.ak_autobahn import start_decoupled_autobahn_client
 
 
 def connect(url=None):
@@ -51,7 +51,7 @@ class WaapiClient(UnsubscribeHandler):
     def _connect(self):
         # Arbitrary queue size of 10, for now
         self._client_thread, self._connected_event, self._request_queue = \
-            runner_init(self._url, WaapiClientAutobahn, 10, self._loop)
+            start_decoupled_autobahn_client(self._url, WaapiClientAutobahn, 10, self._loop)
 
         # Return upon connection success
         # (Event from threading module here, no need for the asyncio threadsafe wrapper)

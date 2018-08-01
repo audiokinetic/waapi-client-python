@@ -6,7 +6,7 @@ from autobahn.wamp import ApplicationError
 
 from waapi.interface import WampRequestType, WampRequest
 from waapi.libs.ak_autobahn import AkComponent
-from waapi.libs.async_compatibility import asyncio, yield_from
+from waapi.libs.async_compatibility import asyncio
 
 
 class WaapiClientAutobahn(AkComponent):
@@ -18,15 +18,15 @@ class WaapiClientAutobahn(AkComponent):
     # Uncomment for debug messages
     # logger.setLevel(logging.DEBUG)
 
-    def __init__(self, config, request_queue, connected_event):
+    def __init__(self, config, connected_event, request_queue):
         """
         :param config: Autobahn configuration
-        :type request_queue: asyncio.Queue
         :type connected_event: threading.Event
+        :type request_queue: asyncio.Queue
         """
         super(WaapiClientAutobahn, self).__init__(config)
-        self._request_queue = request_queue
         self._connected_event = connected_event
+        self._request_queue = request_queue
 
     @classmethod
     def _log(cls, msg):
@@ -48,8 +48,10 @@ class WaapiClientAutobahn(AkComponent):
         res = yield from self.call(request.uri, **request.kwargs)
         self._log("Received response for call")
         result = res.kwresults if res else {}
-        callback = _WampCallbackHandler(request.callback)
-        callback(result)
+        if request.callback:
+            self._log("Callback specified, calling it")
+            callback = _WampCallbackHandler(request.callback)
+            callback(result)
         request.future.set_result(result)
 
     @asyncio.coroutine

@@ -29,6 +29,7 @@ class Integration(CleanConnectedClientTestCase):
             my_callback,
             **{"return": ["id"]}
         )
+
         self.assertIsNotNone(handler)
         self._create_object()
         self.assertTrue(event.wait(self.TIMEOUT_VALUE))
