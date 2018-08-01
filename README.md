@@ -5,20 +5,11 @@ Decoupled autobahn WAMP client with support for plain options and bindable subsc
 * Python 3.4+
 * Wwise instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
-## Setup
-### Users
+## For users
+### Setup
 `python3 -m pip install waapi-client`
 
-### Developers
-You may install the package locally using either pip or pipenv.
-
-Clone this repository, then from the repository root run:
-
-`python3 -m pip -e .`
-
-`pipenv install --three`
-
-## Usage
+### Usage
 ```python
 from waapi import WaapiClient
 
@@ -47,7 +38,15 @@ handler.unsubscribe()
 client.disconnect()
 ```
 
-## Tests
+## For developers
+### Setup
+You may install the package locally using either pip or pipenv.
+
+Clone this repository, then from the repository root run:
+
+`python3 -m pip -e .` or `pipenv install --three`
+
+### Running the tests
 Open a blank project in Wwise, then you may execute the test on terminal from the root of the repository by running:
 
 `python3 -m unittest discover -p "test_*" -v`
