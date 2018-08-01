@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e2f0c1_c0b745de",
+        "filename": "waapi/client/client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T18:20:46Z",
+      "side": 1,
+      "message": "shouldn\u0027t we return False here?",
+      "range": {
+        "startLine": 183,
+        "startChar": 12,
+        "endLine": 183,
+        "endChar": 18
+      },
+      "revId": "e38913111b2464e83e7add9d09d83ee2e7fe1349",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd493aeb_b1b45702",
+        "filename": "waapi/client/client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T18:20:46Z",
+      "side": 1,
+      "message": "Should be `Result | None` since we don\u0027t return anything when `client_thread.is_alive() is False`",
+      "range": {
+        "startLine": 206,
+        "startChar": 17,
+        "endLine": 206,
+        "endChar": 40
+      },
+      "revId": "e38913111b2464e83e7add9d09d83ee2e7fe1349",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7c5920fb_415eb629",
+        "filename": "waapi/client/event.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T18:20:46Z",
+      "side": 1,
+      "message": "Is it expected that None is returned when bind fails?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 23
+      },
+      "revId": "e38913111b2464e83e7add9d09d83ee2e7fe1349",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d6334df8_e7428c64",
+        "filename": "waapi/test/test_rpc_lowlevel.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T18:20:46Z",
+      "side": 1,
+      "message": "Wrong name",
+      "range": {
+        "startLine": 4,
+        "startChar": 6,
+        "endLine": 4,
+        "endChar": 23
+      },
+      "revId": "e38913111b2464e83e7add9d09d83ee2e7fe1349",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    }
+  ]
+}
