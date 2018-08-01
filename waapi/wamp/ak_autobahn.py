@@ -3,7 +3,7 @@ import inspect
 from threading import Thread, Event
 from pprint import pformat
 
-from waapi.libs.async_compatibility import asyncio
+from waapi.wamp.async_compatibility import asyncio
 
 import txaio
 

@@ -2,10 +2,10 @@ from copy import copy
 
 from waapi.client.event import EventHandler
 from waapi.client.interface import UnsubscribeHandler
-from waapi.libs.interface import WampRequest, WampRequestType, CannotConnectToWaapiException
-from waapi.libs.async_decoupled_client import WampClientAutobahn
-from waapi.libs.async_compatibility import asyncio
-from waapi.libs.ak_autobahn import start_decoupled_autobahn_client
+from waapi.wamp.interface import WampRequest, WampRequestType, CannotConnectToWaapiException
+from waapi.wamp.async_decoupled_client import WampClientAutobahn
+from waapi.wamp.async_compatibility import asyncio
+from waapi.wamp.ak_autobahn import start_decoupled_autobahn_client
 
 
 def connect(url=None):

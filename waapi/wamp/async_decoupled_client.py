@@ -4,9 +4,9 @@ from threading import Thread
 
 from autobahn.wamp import ApplicationError
 
-from waapi.libs.interface import WampRequestType
-from waapi.libs.ak_autobahn import AkComponent
-from waapi.libs.async_compatibility import asyncio
+from waapi.wamp.interface import WampRequestType
+from waapi.wamp.ak_autobahn import AkComponent
+from waapi.wamp.async_compatibility import asyncio
 
 
 class WampClientAutobahn(AkComponent):
