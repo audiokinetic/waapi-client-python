@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dba73d90_515819cd",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T19:18:56Z",
+      "side": 1,
+      "message": "This doesn\u0027t match the version requirement we have in the Pipfile",
+      "range": {
+        "startLine": 5,
+        "startChar": 2,
+        "endLine": 5,
+        "endChar": 13
+      },
+      "revId": "0d7f66a04eae74f8c7f68b7e82e3e6e212a9dd91",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69f9fac2_1d2d4066",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T19:18:56Z",
+      "side": 1,
+      "message": "I would separate the User setup + usage from the developer setup + running tests. Just so users don\u0027t get confused as to what they really need to do to get started.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 8
+      },
+      "revId": "0d7f66a04eae74f8c7f68b7e82e3e6e212a9dd91",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b6581713_a5dd9c6f",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-01T19:18:56Z",
+      "side": 1,
+      "message": "Group these commands inside a single ``` block",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 24
+      },
+      "revId": "0d7f66a04eae74f8c7f68b7e82e3e6e212a9dd91",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    }
+  ]
+}
