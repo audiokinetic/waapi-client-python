@@ -21,3 +21,7 @@ class Connection(unittest.TestCase):
         self.assertTrue(client.is_connected())
         client.disconnect()
         self.assertFalse(client.is_connected())
+
+    def test_cannot_connect(self):
+        client = connect("ws://bad_address/waapi")
+        self.assertIsNone(client)

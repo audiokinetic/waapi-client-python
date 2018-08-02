@@ -22,6 +22,8 @@ class AutobahnClientDecoupler:
     """
     def __init__(self, queue_size):
         self._request_queue = asyncio.Queue(queue_size)
+        self._future = None
+        """:type: concurrent.futures.Future"""
 
         # Do not use the asyncio loop, otherwise failure to connect will stop
         # the loop and the caller will never be notified!
@@ -50,6 +52,13 @@ class AutobahnClientDecoupler:
         :return: Generator to a WampRequest when one is available
         """
         return self._request_queue.get()
+
+    def set_caller_future(self, concurrent_future):
+        self._future = concurrent_future
+
+    def unblock_caller(self):
+        if self._future:
+            self._future.set_result(None)
 
 
 def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
@@ -103,7 +112,9 @@ class _WampClientThread(Thread):
 
             # Wake the caller, this thread will terminate right after so the
             # error can be detected by checking if the thread is alive
-            self._decoupler.set_connected()
+            self._decoupler.set_joined()
+
+        self._decoupler.unblock_caller()
 
 
 class AkCall(Call):

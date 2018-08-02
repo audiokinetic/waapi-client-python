@@ -48,6 +48,9 @@ class WaapiClient(UnsubscribeHandler):
         self._client_thread = None
         """:type: Thread"""
         self._loop = asyncio.get_event_loop()
+        if self._loop.is_closed():
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
 
         self._decoupler = None
         """:type: AutobahnClientDecoupler"""
@@ -219,9 +222,14 @@ class WaapiClient(UnsubscribeHandler):
             yield from future  # The client worker is responsible for completing the future
 
         forwarded_future = asyncio.Future()
-        asyncio.run_coroutine_threadsafe(_async_request(forwarded_future), self._loop).result()
+        concurrent_future = asyncio.run_coroutine_threadsafe(_async_request(forwarded_future), self._loop)
+        self._decoupler.set_caller_future(concurrent_future)
+        concurrent_future.result()
+        self._decoupler.set_caller_future(None)
 
-        return forwarded_future.result()
+        # If the decoupled client worker never set the future, it failed and/or died and we return None
+        if forwarded_future.done():
+            return forwarded_future.result()
 
     def __del__(self):
         self.disconnect()
