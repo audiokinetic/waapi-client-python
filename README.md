@@ -44,7 +44,11 @@ You may install the package locally using either pip or pipenv.
 
 Clone this repository, then from the repository root run:
 
-`python3 -m pip -e .` or `pipenv install --three`
+`python3 -m pip install -e .`
+
+or
+
+`pipenv install --three`
 
 ### Running the tests
 Open a blank project in Wwise, then you may execute the test on terminal from the root of the repository by running:
