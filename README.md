@@ -53,4 +53,8 @@ or
 ### Running the tests
 Open a blank project in Wwise, then you may execute the test on terminal from the root of the repository by running:
 
+`python3 setup.py test`
+
+or directly:
+
 `python3 -m unittest discover -p "test_*" -v`
