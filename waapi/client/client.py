@@ -22,6 +22,10 @@ def connect(url=None):
         return None
 
 
+def enable_debug_log():
+    WampClientAutobahn.enable_debug_log()
+
+
 class WaapiClient(UnsubscribeHandler):
     """
     Pythonic Wwise Authoring API client with a synchronous looking API.
@@ -232,4 +236,10 @@ class WaapiClient(UnsubscribeHandler):
             return forwarded_future.result()
 
     def __del__(self):
+        self.disconnect()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.disconnect()

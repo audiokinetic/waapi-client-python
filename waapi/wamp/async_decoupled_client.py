@@ -15,9 +15,6 @@ class WampClientAutobahn(AkComponent):
     """
     logger = logging.getLogger("WaapiClientAutobahn")
 
-    # Uncomment for debug messages
-    # logger.setLevel(logging.DEBUG)
-
     def __init__(self, config, decoupler):
         """
         :param config: Autobahn configuration
@@ -25,6 +22,10 @@ class WampClientAutobahn(AkComponent):
         """
         super(WampClientAutobahn, self).__init__(config)
         self._decoupler = decoupler
+
+    @classmethod
+    def enable_debug_log(cls):
+        cls.logger.setLevel(logging.DEBUG)
 
     @classmethod
     def _log(cls, msg):
