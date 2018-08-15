@@ -114,19 +114,24 @@ class WaapiClient(UnsubscribeHandler):
         """
         return self._decoupler.has_joined() and self._client_thread.is_alive()
 
-    def call(self, uri, **kwargs):
+    def call(self, uri, *args, **kwargs):
         """
         Do a Remote Procedure Call (RPC) to the Waapi server.
         Arguments can be specified as named arguments (unless the argument is a reserved keyword), e.g.:
           client.call("my.function", some_argument="Value")
 
-        Unpacking a dictionary (using '**') is more robust, e.g.:
-          client.call("my.function", **{"some_argument": "Value"})
+        To avoid reserved keywords restrictions, you may specify a single dictionary, e.g.:
+          client.call("my.function", {"some_argument": "Value"})
 
-        Options are accepted using the named_argument options, which can also be in the dictionary to unpack, e.g.:
+        Options are accepted using the named argument options, which can also be in the dictionary, e.g.:
           client.call("my.function", some_argument="Value", options={"option1": "Option Value"})
             OR
-          client.call("my.function", **{"some_argument":"Value", "options":{"option1": "Option Value"}})
+          client.call("my.function", {"some_argument":"Value", "options":{"option1": "Option Value"}})
+            OR
+          client.call("my.function", {"some_argument":"Value"}, options={"option1": "Option Value"})
+
+        Note that any named arguments passed take precedence on the values of a dictionary passed as
+        a positional argument.
 
         :param uri: URI of the remote procedure to be called
         :type uri: str
@@ -134,9 +139,10 @@ class WaapiClient(UnsubscribeHandler):
         :return: Result from the remote procedure call, None if failed.
         :rtype: dict | None
         """
+        kwargs = self.__merge_args_to_kwargs(args, kwargs)
         return self.__do_request(WampRequestType.CALL, uri, **kwargs)
 
-    def subscribe(self, uri, callback_or_handler=None, **kwargs):
+    def subscribe(self, uri, callback_or_handler=None, *args, **kwargs):
         """
         Subscribe to a topic on the Waapi server.
         Named arguments are options to be passed for the subscription.
@@ -144,10 +150,15 @@ class WaapiClient(UnsubscribeHandler):
         Note that the callback will be called from a different thread.
         Use threading mechanisms to synchronize your code and avoid race conditions.
 
-        Like the call method, unpacking a dictionary (using '**') is more robust to avoid reserved keywords, e.g.:
-          client.subscribe("my.topic", callback, option1="Value")
+        Like the call method, you may pass a dictionary to avoid reserved keywords restrictions, e.g.:
+          client.subscribe("my.topic", callback, option1="Value", option2="OtherValue")
             OR
-          client.subscribe("my.topic", callback, **{"option1": "Value"})
+          client.subscribe("my.topic", callback, {"option1": "Value", "option2": "OtherValue"})
+            OR
+          client.subscribe("my.topic", callback, {"option1": "Value"}, option2="OtherValue")
+
+        Note that any named arguments passed take precedence on the values of a dictionary passed as
+        a positional argument.
 
         :param uri: URI of the remote procedure to be called
         :type uri: str
@@ -158,6 +169,8 @@ class WaapiClient(UnsubscribeHandler):
         :type callback_or_handler: callable | EventHandler
         :rtype: EventHandler | None
         """
+        kwargs = self.__merge_args_to_kwargs(args, kwargs)
+
         if callback_or_handler is not None and isinstance(callback_or_handler, EventHandler):
             event_handler = callback_or_handler
         else:
@@ -201,6 +214,20 @@ class WaapiClient(UnsubscribeHandler):
         :rtype: set[EventHandler]
         """
         return copy(self._subscriptions)
+
+    @staticmethod
+    def __merge_args_to_kwargs(args, kwargs):
+        """
+        Merged a single dictionary passed as argument to a kwargs dictionary, if it exists.
+
+        :type args: tuple[dict] | tuple[]
+        :param kwargs: dict
+        :return: Updated kwargs
+        :rtype: dict
+        """
+        if len(args) > 0 and isinstance(args[0], dict):
+            kwargs.update(args[0])
+        return kwargs
 
     def __do_request(self, request_type, uri=None, callback=None, subscription=None, **kwargs):
         """

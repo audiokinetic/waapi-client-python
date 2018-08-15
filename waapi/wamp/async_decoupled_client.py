@@ -91,10 +91,10 @@ class WampClientAutobahn(AkComponent):
 
                 try:
                     handler = {
-                        WampRequestType.STOP: lambda request: self.stop_handler(request),
-                        WampRequestType.CALL: lambda request: self.call_handler(request),
-                        WampRequestType.SUBSCRIBE: lambda request: self.subscribe_handler(request),
-                        WampRequestType.UNSUBSCRIBE: lambda request: self.unsubscribe_handler(request)
+                        WampRequestType.STOP: self.stop_handler,
+                        WampRequestType.CALL: self.call_handler,
+                        WampRequestType.SUBSCRIBE: self.subscribe_handler,
+                        WampRequestType.UNSUBSCRIBE: self.unsubscribe_handler
                     }.get(request.request_type)
 
                     if handler:

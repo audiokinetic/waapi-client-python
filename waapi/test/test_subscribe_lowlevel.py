@@ -79,7 +79,7 @@ class SubscribeLowLevel(CleanConnectedClientTestCase):
         handler = self.client.subscribe(
             "ak.wwise.core.object.created",
             on_object_created,
-            **{
+            {
                 "return": ["id", "isPlayable", "classId"]
             }
         )
