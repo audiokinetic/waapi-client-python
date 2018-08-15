@@ -2,12 +2,15 @@
 Decoupled autobahn WAMP client with support for plain options and bindable subscription callbacks.
 
 ## Requirements
-* Python 3.4+
+* Python 3.4+ (IMPORTANT: 3.7 is not yet supported, awaiting [fix from autobahn](https://github.com/crossbario/autobahn-python/issues/1022) to be released)
 * Wwise instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
 ## For users
 ### Setup
-`python3 -m pip install waapi-client`
+For compatibility with Python 2 on Windows, it is recommended to use the [Python Launcher for Windows](https://docs.python.org/3/using/windows.html#launcher) which is installed with Python 3 from [python.org](https://www.python.org).
+
+* Windows: `py -3 -m pip install waapi-client` 
+* Other platforms: `python3 -m pip install waapi-client`
 
 ### Usage
 ```python
@@ -44,7 +47,8 @@ You may install the package locally using either pip or pipenv.
 
 Clone this repository, then from the repository root run:
 
-`python3 -m pip install -e .`
+* Windows: `py -3 -m pip install -e .` 
+* Other platforms: `python3 -m pip install -e .`
 
 or
 
@@ -53,8 +57,5 @@ or
 ### Running the tests
 Open a blank project in Wwise, then you may execute the test on terminal from the root of the repository by running:
 
-`python3 setup.py test`
-
-or directly:
-
-`python3 -m unittest discover -p "test_*" -v`
+* Windows: `py -3 setup.py test` 
+* Other platforms: `python3 setup.py test`
