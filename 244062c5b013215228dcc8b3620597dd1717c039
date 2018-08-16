@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab314a69_b2ffdf56",
+        "filename": "waapi/wamp/ak_autobahn.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1000018
+      },
+      "writtenOn": "2018-08-16T18:35:10Z",
+      "side": 1,
+      "message": "NITPICK: use pprint?",
+      "range": {
+        "startLine": 137,
+        "startChar": 12,
+        "endLine": 137,
+        "endChar": 29
+      },
+      "revId": "244062c5b013215228dcc8b3620597dd1717c039",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
+    }
+  ]
+}
