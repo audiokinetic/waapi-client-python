@@ -22,6 +22,30 @@
       "revId": "244062c5b013215228dcc8b3620597dd1717c039",
       "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b2e0c472_6c1729c5",
+        "filename": "waapi/wamp/ak_autobahn.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2018-08-16T18:37:30Z",
+      "side": 1,
+      "message": "Yes, that would make more sense!",
+      "parentUuid": "ab314a69_b2ffdf56",
+      "range": {
+        "startLine": 137,
+        "startChar": 12,
+        "endLine": 137,
+        "endChar": 29
+      },
+      "revId": "244062c5b013215228dcc8b3620597dd1717c039",
+      "serverId": "729aee68-0a5c-4df9-93f6-647d7765b113",
+      "unresolved": false
     }
   ]
 }
