@@ -105,10 +105,36 @@ class _WampClientThread(Thread):
     def run(self):
         try:
             asyncio.set_event_loop(self._loop)
-            self._runner.run(
-                lambda config: self._akcomponent_factory(config, self._decoupler))
+
+            # Start the loop ourselves to skip the sigterm signal handler since
+            # it is not supported from a different thread
+            coro = self._runner.run(
+                lambda config: self._akcomponent_factory(config, self._decoupler),
+                start_loop=False
+            )
+
+            transport, protocol = self._loop.run_until_complete(coro)
+
+            # Info is too verbose, use error by default
+            # TODO: Make logging level for autobahn configurable
+            txaio.start_logging(level='error')
+
+            try:
+                self._loop.run_forever()
+            except KeyboardInterrupt:
+                # wait until we send Goodbye if user hit ctrl-c
+                # (done outside this except so SIGTERM gets the same handling)
+                pass
+
+            # give Goodbye message a chance to go through, if we still
+            # have an active session
+            if protocol._session:
+                self._loop.run_until_complete(protocol._session.leave())
+
+            self._loop.close()
+
         except Exception as e:
-            print(type(e).__name__ + pformat(e))
+            print(pformat(e))
 
             # Wake the caller, this thread will terminate right after so the
             # error can be detected by checking if the thread is alive
