@@ -103,7 +103,7 @@ class WampClientAutobahn(AkComponent):
                         self._log("Undefined WampRequestType")
 
                 except Exception as e:
-                    self._log(pformat(str(e)))
+                    self.logger.error("WaapiClientAutobahn (ERROR): " + pformat(str(e)))
                     request.future.set_result(None)
 
                 self._log("Done treating request")
