@@ -101,12 +101,15 @@ class WampClientAutobahn(AkComponent):
                         yield from handler(request)
                     else:
                         self._log("Undefined WampRequestType")
-
                 except Exception as e:
                     self.logger.error("WaapiClientAutobahn (ERROR): " + pformat(str(e)))
                     request.future.set_result(None)
 
                 self._log("Done treating request")
+
+                if request.request_type == WampRequestType.STOP:
+                    break
+
         except RuntimeError:
             # The loop has been shut down by a disconnect
             pass
