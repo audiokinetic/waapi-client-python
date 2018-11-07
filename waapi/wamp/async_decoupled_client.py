@@ -4,7 +4,7 @@ from threading import Thread
 
 from autobahn.wamp import ApplicationError
 
-from waapi.wamp.interface import WampRequestType
+from waapi.wamp.interface import WampRequestType, WampRequest, WaapiRequestFailed
 from waapi.wamp.ak_autobahn import AkComponent
 from waapi.wamp.async_compatibility import asyncio
 
@@ -15,13 +15,16 @@ class WampClientAutobahn(AkComponent):
     """
     logger = logging.getLogger("WaapiClientAutobahn")
 
-    def __init__(self, config, decoupler):
+    def __init__(self, config, decoupler, allow_exception):
         """
         :param config: Autobahn configuration
         :type decoupler: AutobahnClientDecoupler
+        :param allow_exception: True to allow exception, False to ignore them.
+                                In any case they are logged to stderr.
         """
         super(WampClientAutobahn, self).__init__(config)
         self._decoupler = decoupler
+        self._allow_exception = allow_exception
 
     @classmethod
     def enable_debug_log(cls):
@@ -43,6 +46,9 @@ class WampClientAutobahn(AkComponent):
 
     @asyncio.coroutine
     def call_handler(self, request):
+        """
+        :param request: WampRequest
+        """
         self._log("Received CALL, calling " + request.uri)
         res = yield from self.call(request.uri, **request.kwargs)
         self._log("Received response for call")
@@ -55,6 +61,9 @@ class WampClientAutobahn(AkComponent):
 
     @asyncio.coroutine
     def subscribe_handler(self, request):
+        """
+        :param request: WampRequest
+        """
         self._log("Received SUBSCRIBE, subscribing to " + request.uri)
         callback = _WampCallbackHandler(request.callback)
         subscription = yield from (self.subscribe(
@@ -66,6 +75,9 @@ class WampClientAutobahn(AkComponent):
 
     @asyncio.coroutine
     def unsubscribe_handler(self, request):
+        """
+        :param request: WampRequest
+        """
         self._log("Received UNSUBSCRIBE, unsubscribing from " + str(request.subscription))
         try:
             # Successful unsubscribe returns nothing
@@ -101,9 +113,13 @@ class WampClientAutobahn(AkComponent):
                         yield from handler(request)
                     else:
                         self._log("Undefined WampRequestType")
-                except Exception as e:
+                except ApplicationError as e:
                     self.logger.error("WaapiClientAutobahn (ERROR): " + pformat(str(e)))
-                    request.future.set_result(None)
+
+                    if self._allow_exception:
+                        request.future.set_exception(WaapiRequestFailed(e))
+                    else:
+                        request.future.set_result(None)
 
                 self._log("Done treating request")
 
