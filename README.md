@@ -5,7 +5,7 @@ Decoupled autobahn WAMP client with support for plain options and bindable subsc
 * Python 3.6+
 * Wwise instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
-## For users
+## For general usage
 ### Setup
 For compatibility with Python 2 on Windows, it is recommended to use the [Python Launcher for Windows](https://docs.python.org/3/using/windows.html#launcher) which is installed with Python 3 from [python.org](https://www.python.org).
 
@@ -41,7 +41,7 @@ handler.unsubscribe()
 client.disconnect()
 ```
 
-## For developers
+## For contributors
 ### Setup
 You may install the package locally using either pip or pipenv.
 

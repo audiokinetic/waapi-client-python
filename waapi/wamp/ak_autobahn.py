@@ -61,7 +61,7 @@ class AutobahnClientDecoupler:
             self._future.set_result(None)
 
 
-def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
+def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop, allow_exception):
     """
     Initialize a WAMP client runner in a separate thread with the provided asyncio loop
 
@@ -69,6 +69,7 @@ def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
     :type akcomponent_factory: (config, AutobahnClientDecoupler) -> AkComponent
     :type queue_size: int
     :type loop: asyncio.AbstractEventLoop
+    :type allow_exception: bool
     :rtype: (Thread, AutobahnClientDecoupler)
     """
     runner = ApplicationRunner(url=url, realm=u"realm1")
@@ -78,7 +79,8 @@ def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
         runner,
         loop,
         decoupler,
-        akcomponent_factory
+        akcomponent_factory,
+        allow_exception
     )
     async_client_thread.start()
 
@@ -86,7 +88,7 @@ def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop):
 
 
 class _WampClientThread(Thread):
-    def __init__(self, runner, loop, decoupler, akcomponent_factory):
+    def __init__(self, runner, loop, decoupler, akcomponent_factory, allow_exception):
         """
         WAMP client thread that runs the asyncio main event loop
         Do NOT terminate this thread to stop the client: use the decoupler to send a STOP request.
@@ -94,13 +96,15 @@ class _WampClientThread(Thread):
         :type runner: ApplicationRunner
         :type loop: asyncio.AbstractEventLoop
         :type decoupler: AutobahnClientDecoupler
-        :type akcomponent_factory: (config, AutobahnClientDecoupler) -> AkComponent
+        :type akcomponent_factory: (config, AutobahnClientDecoupler, bool) -> AkComponent
+        :type allow_exception: False
         """
         super(_WampClientThread, self).__init__()
         self._runner = runner
         self._loop = loop
         self._decoupler = decoupler
         self._akcomponent_factory = akcomponent_factory
+        self._allow_exception = allow_exception
 
     def run(self):
         try:
@@ -109,7 +113,7 @@ class _WampClientThread(Thread):
             # Start the loop ourselves to skip the sigterm signal handler since
             # it is not supported from a different thread
             coro = self._runner.run(
-                lambda config: self._akcomponent_factory(config, self._decoupler),
+                lambda config: self._akcomponent_factory(config, self._decoupler, self._allow_exception),
                 start_loop=False
             )
 
