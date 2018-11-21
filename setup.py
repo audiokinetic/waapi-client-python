@@ -18,7 +18,7 @@ setup(
     license='Apache License 2.0',
     platforms=['any'],
     scripts=[],
-    version='0.1b8',
+    version='0.2b1',
     description='Wwise Authoring API client.',
     long_description=long_description,
     long_description_content_type="text/markdown",

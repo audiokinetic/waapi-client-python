@@ -2,7 +2,7 @@ from copy import copy
 
 from waapi.client.event import EventHandler
 from waapi.client.interface import UnsubscribeHandler
-from waapi.wamp.interface import WampRequest, WampRequestType, CannotConnectToWaapiException
+from waapi.wamp.interface import WampRequest, WampRequestType, CannotConnectToWaapiException, WaapiRequestFailed
 from waapi.wamp.async_decoupled_client import WampClientAutobahn
 from waapi.wamp.async_compatibility import asyncio
 from waapi.wamp.ak_autobahn import start_decoupled_autobahn_client
@@ -40,14 +40,17 @@ class WaapiClient(UnsubscribeHandler):
     Import as:
       from waapi import WaapiClient
     """
-    def __init__(self, url=None):
+    def __init__(self, url=None, allow_exception=False):
         """
         :param url: URL of the Wwise Authoring API WAMP server, defaults to ws://127.0.0.1:8080/waapi
         :type: str
+        :param allow_exception: Allow errors on call and subscribe to throw an exception. Default is False.
+        :type allow_exception: bool
         :raises: CannotConnectToWaapiException
         """
         super(WaapiClient, self).__init__()
 
+        self._allow_exception = allow_exception
         self._url = url or "ws://127.0.0.1:8080/waapi"
         self._client_thread = None
         """:type: Thread"""
@@ -77,7 +80,7 @@ class WaapiClient(UnsubscribeHandler):
         # Arbitrary queue size of 32
         # TODO: Test if an unbounded queue might do the job for most cases, add the queue size as a parameter
         self._client_thread, self._decoupler = \
-            start_decoupled_autobahn_client(self._url, WampClientAutobahn, 32, self._loop)
+            start_decoupled_autobahn_client(self._url, WampClientAutobahn, 32, self._loop, self._allow_exception)
 
         # Return upon connection success
         self._decoupler.wait_for_joined()
@@ -138,6 +141,7 @@ class WaapiClient(UnsubscribeHandler):
         :param kwargs: Keyword arguments to be passed, options may be passed using the key "options"
         :return: Result from the remote procedure call, None if failed.
         :rtype: dict | None
+        :raises: WaapiRequestFailed
         """
         kwargs = self.__merge_args_to_kwargs(args, kwargs)
         return self.__do_request(WampRequestType.CALL, uri, **kwargs)
@@ -168,6 +172,7 @@ class WaapiClient(UnsubscribeHandler):
                                     Note: use a generic signature to support any topic: def fct(*args, **kwargs):
         :type callback_or_handler: callable | EventHandler
         :rtype: EventHandler | None
+        :raises: WaapiRequestFailed
         """
         kwargs = self.__merge_args_to_kwargs(args, kwargs)
 
@@ -248,6 +253,9 @@ class WaapiClient(UnsubscribeHandler):
 
         @asyncio.coroutine
         def _async_request(future):
+            """
+            :type future: asyncio.Future
+            """
             request = WampRequest(request_type, uri, kwargs, callback, subscription, future)
             yield from self._decoupler.put_request(request)
             yield from future  # The client worker is responsible for completing the future
