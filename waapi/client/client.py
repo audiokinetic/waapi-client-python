@@ -115,7 +115,7 @@ class WaapiClient(UnsubscribeHandler):
         :return: True if the client is connected, False otherwise.
         :rtype: bool
         """
-        return self._decoupler.has_joined() and self._client_thread.is_alive()
+        return self._decoupler and self._decoupler.has_joined() and self._client_thread.is_alive()
 
     def call(self, uri, *args, **kwargs):
         """
