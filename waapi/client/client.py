@@ -1,3 +1,4 @@
+from sys import platform
 from copy import copy
 
 from waapi.client.event import EventHandler
@@ -54,9 +55,16 @@ class WaapiClient(UnsubscribeHandler):
         self._url = url or "ws://127.0.0.1:8080/waapi"
         self._client_thread = None
         """:type: Thread"""
+
         self._loop = asyncio.get_event_loop()
-        if self._loop.is_closed():
-            self._loop = asyncio.new_event_loop()
+        if not self._loop.is_running():
+            if not self._loop.is_closed():
+                self._loop.close()
+            if platform == 'win32':
+                #  Prefer the ProactorEventLoop event loop on Windows
+                self._loop = asyncio.ProactorEventLoop()
+            else:
+                self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
 
         self._decoupler = None
