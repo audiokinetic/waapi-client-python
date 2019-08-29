@@ -19,7 +19,7 @@ class AllowedException(unittest.TestCase):
             try:
                 client.call("ak.wwise.core.getInfo", someArg=True)
             except WaapiRequestFailed as e:
-                self.assertTrue(e.kwargs.get("message", "").startswith("Invalid arguments."))
+                self.assertEqual(e.kwargs.get("details", {}).get("typeUri", ""), "ak.wwise.schema_validation_failed")
                 return
 
             self.fail("Should have thrown an exception")

@@ -13,7 +13,7 @@ class WampClientAutobahn(AkComponent):
     """
     Implementation class of a Waapi client using the autobahn library
     """
-    logger = logging.getLogger("WaapiClientAutobahn")
+    logger = logging.getLogger("WampClientAutobahn")
 
     def __init__(self, config, decoupler, allow_exception):
         """
@@ -32,7 +32,7 @@ class WampClientAutobahn(AkComponent):
 
     @classmethod
     def _log(cls, msg):
-        cls.logger.debug("WaapiClientAutobahn: %s", msg)
+        cls.logger.debug("WampClientAutobahn: %s", msg)
 
     @asyncio.coroutine
     def stop_handler(self, request):
@@ -114,7 +114,7 @@ class WampClientAutobahn(AkComponent):
                     else:
                         self._log("Undefined WampRequestType")
                 except ApplicationError as e:
-                    self.logger.error("WaapiClientAutobahn (ERROR): " + pformat(str(e)))
+                    self.logger.error("WampClientAutobahn (ERROR): " + pformat(str(e)))
 
                     if self._allow_exception:
                         request.future.set_exception(WaapiRequestFailed(e))
