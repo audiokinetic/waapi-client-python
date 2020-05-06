@@ -100,23 +100,24 @@ class WaapiClient(UnsubscribeHandler):
         """
         Gracefully disconnect from the Waapi server.
 
-        :return: True if successfully disconnected, False otherwise.
+        :return: True if the call caused a successful disconnection, False otherwise.
         :rtype: bool
         """
-        if not self.is_connected():
-            return False
+        if self.is_connected() and self.__do_request(WampRequestType.STOP):
+            # Wait for the runner thread to gracefully exit and the asyncio loop to close
+            if self._client_thread.is_alive():
+                self._client_thread.join()
 
-        self.__do_request(WampRequestType.STOP)
-        self._subscriptions.clear()  # No need to unsubscribe, subscriptions will be dropped anyways
+            self._subscriptions.clear()  # No need to unsubscribe, subscriptions will be dropped anyways
 
-        # Wait for the runner thread to gracefully exit and the asyncio loop to close
-        self._client_thread.join()
+            # Create a new loop for upcoming uses
+            if asyncio.get_event_loop().is_closed():
+                asyncio.set_event_loop(asyncio.new_event_loop())
 
-        assert(asyncio.get_event_loop().is_closed())
-        # Create a new loop for upcoming uses
-        asyncio.set_event_loop(asyncio.new_event_loop())
+            return True
 
-        return True
+        # Only the caller that truly caused the disconnection return True
+        return False
 
     def is_connected(self):
         """

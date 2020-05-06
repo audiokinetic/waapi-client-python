@@ -4,6 +4,7 @@ from threading import Thread, Event
 from pprint import pprint
 
 from waapi.wamp.async_compatibility import asyncio
+from waapi.wamp.interface import WampRequestType
 
 import txaio
 
@@ -23,6 +24,7 @@ class AutobahnClientDecoupler:
     def __init__(self, queue_size):
         self._request_queue = asyncio.Queue(queue_size)
         self._future = None
+        self._stopping = False
         """:type: concurrent.futures.Future"""
 
         # Do not use the asyncio loop, otherwise failure to connect will stop
@@ -44,6 +46,14 @@ class AutobahnClientDecoupler:
         :type request: WampRequest
         :return: Generator that completes when the queue can accept the request
         """
+        # On first reception of a STOP request, immediately complete other requests with None
+        if request.request_type == WampRequestType.STOP and not self._stopping:
+            self._stopping = True
+        elif self._stopping:
+            async def stop_now():
+                return request.future.set_result(None)
+            return stop_now()
+
         return self._request_queue.put(request)
 
     def get_request(self):
