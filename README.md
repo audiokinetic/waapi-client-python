@@ -2,17 +2,26 @@
 Decoupled autobahn WAMP client with support for plain options and bindable subscription callbacks.
 
 ## Requirements
-* Python 3.6+
+* Python 3.7, 3.8 or 3.9
 * Wwise instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
-## For general usage
-### Setup
+## Setup
 For compatibility with Python 2 on Windows, it is recommended to use the [Python Launcher for Windows](https://docs.python.org/3/using/windows.html#launcher) which is installed with Python 3 from [python.org](https://www.python.org).
 
 * Windows: `py -3 -m pip install waapi-client` 
 * Other platforms: `python3 -m pip install waapi-client`
 
-### Usage
+## Usage
+```python
+from waapi import WaapiClient
+
+with client as WaapiClient()
+    result = client.call("ak.wwise.core.getInfo")
+```
+
+The `with` statement automatically closes the connection and unregisters subcribers.
+To keep the connection alive, instantiate `WaapiClient` and call `disconnect` when you are done.
+
 ```python
 from waapi import WaapiClient
 
@@ -41,8 +50,14 @@ handler.unsubscribe()
 client.disconnect()
 ```
 
-## For contributors
-### Setup
+Be aware that failing to call `disconnect` will result in the program to appear unresponsive, as the background thread
+running the connection will remain active.
+
+## Contribute
+This repository accepts pull requests.
+You may open an [issue](https://github.com/audiokinetic/waapi-client-python/issues) for any bugs or improvement requests.
+
+### Local Install
 You may install the package locally using either pip or pipenv.
 
 Clone this repository, then from the repository root run:
@@ -54,8 +69,13 @@ or
 
 `pipenv install --three`
 
-### Running the tests
-Open a blank project in Wwise, then you may execute the test on terminal from the root of the repository by running:
+### Running the Tests
+Install the `tox` package:
 
-* Windows: `py -3 setup.py test` 
-* Other platforms: `python3 setup.py test`
+* Windows: `py -3 -m pip install tox`
+* Other platforms: `python3 -m pip install tox`
+
+Open a blank project in Wwise, then you may execute `tox` in the terminal from the root of the repository
+
+The test suite will run for all supported versions of Python.
+Use `-e pyXX` to run for a single version, e.g., `tox -e py37` for Python 3.7).

@@ -1,0 +1,16 @@
+# Version 0.5
+## Bugfixes
+* WG-51774 Cannot use ak.wwise.waapi.getSchema because the uri keyword is used in WaapiClient.call (Closes #5)
+* WG-51607 Migrate from coroutine to def async (Closes #4)
+
+## Misc
+* Updated Python requirements and moved to tox test frontend
+
+# Version 0.4
+## Bugfixes
+* WG-47527 Multiple calls to disconnect cause hang
+* WG-44991 Add support for subprocesses (Closes #1)
+* Added check for None decoupler, otherwise null dereferencing when connection failed
+
+## Misc
+* Updated pipfile to latest dependency versions
