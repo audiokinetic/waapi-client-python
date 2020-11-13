@@ -126,7 +126,7 @@ class WaapiClient(UnsubscribeHandler):
         """
         return self._decoupler and self._decoupler.has_joined() and self._client_thread.is_alive()
 
-    def call(self, uri, *args, **kwargs):
+    def call(self, _uri, *args, **kwargs):
         """
         Do a Remote Procedure Call (RPC) to the Waapi server.
         Arguments can be specified as named arguments (unless the argument is a reserved keyword), e.g.:
@@ -145,17 +145,17 @@ class WaapiClient(UnsubscribeHandler):
         Note that any named arguments passed take precedence on the values of a dictionary passed as
         a positional argument.
 
-        :param uri: URI of the remote procedure to be called
-        :type uri: str
+        :param _uri: URI of the remote procedure to be called
+        :type _uri: str
         :param kwargs: Keyword arguments to be passed, options may be passed using the key "options"
         :return: Result from the remote procedure call, None if failed.
         :rtype: dict | None
         :raises: WaapiRequestFailed
         """
         kwargs = self.__merge_args_to_kwargs(args, kwargs)
-        return self.__do_request(WampRequestType.CALL, uri, **kwargs)
+        return self.__do_request(WampRequestType.CALL, _uri, **kwargs)
 
-    def subscribe(self, uri, callback_or_handler=None, *args, **kwargs):
+    def subscribe(self, _uri, callback_or_handler=None, *args, **kwargs):
         """
         Subscribe to a topic on the Waapi server.
         Named arguments are options to be passed for the subscription.
@@ -173,8 +173,8 @@ class WaapiClient(UnsubscribeHandler):
         Note that any named arguments passed take precedence on the values of a dictionary passed as
         a positional argument.
 
-        :param uri: URI of the remote procedure to be called
-        :type uri: str
+        :param _uri: URI of the remote procedure to be called
+        :type _uri: str
         :param callback_or_handler: A callback that will be called when the server publishes on the provided topic.
                                     The instance can be a function with a matching signature or an instance of a
                                     EventHandler (or subclass).
@@ -192,7 +192,7 @@ class WaapiClient(UnsubscribeHandler):
 
         subscription = self.__do_request(
             WampRequestType.SUBSCRIBE,
-            uri,
+            _uri,
             event_handler.on_event,
             **kwargs
         )
@@ -243,12 +243,12 @@ class WaapiClient(UnsubscribeHandler):
             kwargs.update(args[0])
         return kwargs
 
-    def __do_request(self, request_type, uri=None, callback=None, subscription=None, **kwargs):
+    def __do_request(self, request_type, _uri=None, callback=None, subscription=None, **kwargs):
         """
         Create and forward a generic WAMP request to the decoupler
 
         :type request_type: WampRequestType
-        :type uri: str | None
+        :type _uri: str | None
         :type callback: (*Any) -> None | None
         :type subscription: Subscription | None
         :return: Result from WampRequest, None if request failed.
@@ -265,7 +265,7 @@ class WaapiClient(UnsubscribeHandler):
             """
             :type future: asyncio.Future
             """
-            request = WampRequest(request_type, uri, kwargs, callback, subscription, future)
+            request = WampRequest(request_type, _uri, kwargs, callback, subscription, future)
             yield from self._decoupler.put_request(request)
             yield from future  # The client worker is responsible for completing the future
 

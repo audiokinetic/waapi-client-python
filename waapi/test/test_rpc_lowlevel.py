@@ -45,6 +45,19 @@ class RpcLowLevel(ConnectedClientTestCase):
         self.assertIsInstance(result_return.get("id"), str)  # GUID
         self.assertIsInstance(result_return.get("name"), str)
 
+    def test_with_reserved_uri_argument(self):
+        myargs = {
+            "uri": "ak.wwise.core.object.get"
+        }
+        result = self.client.call("ak.wwise.waapi.getSchema", **myargs)
+        self.assertIsNotNone(result)
+        self.assertTrue(isinstance(result, dict))
+
+        self.assertEqual(len(result), 3)
+        self.assertIn("argsSchema", result)
+        self.assertIn("resultSchema", result)
+        self.assertIn("optionsSchema", result)
+
     def test_with_argument_and_return_options(self):
         my_args = {
             "from": {
