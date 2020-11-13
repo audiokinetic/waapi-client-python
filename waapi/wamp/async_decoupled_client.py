@@ -34,8 +34,7 @@ class WampClientAutobahn(AkComponent):
     def _log(cls, msg):
         cls.logger.debug("WampClientAutobahn: %s", msg)
 
-    @asyncio.coroutine
-    def stop_handler(self, request):
+    async def stop_handler(self, request):
         """
         :param request: WampRequest
         """
@@ -44,13 +43,12 @@ class WampClientAutobahn(AkComponent):
         self._log("Disconnected")
         request.future.set_result(True)
 
-    @asyncio.coroutine
-    def call_handler(self, request):
+    async def call_handler(self, request):
         """
         :param request: WampRequest
         """
         self._log("Received CALL, calling " + request.uri)
-        res = yield from self.call(request.uri, **request.kwargs)
+        res = await self.call(request.uri, **request.kwargs)
         self._log("Received response for call")
         result = res.kwresults if res else {}
         if request.callback:
@@ -59,29 +57,27 @@ class WampClientAutobahn(AkComponent):
             callback(result)
         request.future.set_result(result)
 
-    @asyncio.coroutine
-    def subscribe_handler(self, request):
+    async def subscribe_handler(self, request):
         """
         :param request: WampRequest
         """
         self._log("Received SUBSCRIBE, subscribing to " + request.uri)
         callback = _WampCallbackHandler(request.callback)
-        subscription = yield from (self.subscribe(
+        subscription = await (self.subscribe(
             callback,
             topic=request.uri,
             options=request.kwargs)
         )
         request.future.set_result(subscription)
 
-    @asyncio.coroutine
-    def unsubscribe_handler(self, request):
+    async def unsubscribe_handler(self, request):
         """
         :param request: WampRequest
         """
         self._log("Received UNSUBSCRIBE, unsubscribing from " + str(request.subscription))
         try:
             # Successful unsubscribe returns nothing
-            yield from request.subscription.unsubscribe()
+            await request.subscription.unsubscribe()
             request.future.set_result(True)
         except ApplicationError:
             request.future.set_result(False)
@@ -89,15 +85,14 @@ class WampClientAutobahn(AkComponent):
             self._log(str(e))
             request.future.set_result(False)
 
-    @asyncio.coroutine
-    def onJoin(self, details):
+    async def onJoin(self, details):
         self._log("Joined!")
         self._decoupler.set_joined()
 
         try:
             while True:
                 self._log("About to wait on the queue")
-                request = yield from self._decoupler.get_request()
+                request = await self._decoupler.get_request()
                 """:type: WampRequest"""
                 self._log("Received something!")
 
@@ -110,7 +105,7 @@ class WampClientAutobahn(AkComponent):
                     }.get(request.request_type)
 
                     if handler:
-                        yield from handler(request)
+                        await handler(request)
                     else:
                         self._log("Undefined WampRequestType")
                 except ApplicationError as e:

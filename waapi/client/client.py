@@ -260,14 +260,13 @@ class WaapiClient(UnsubscribeHandler):
         # Make sure the current thread has the event loop set
         asyncio.set_event_loop(self._loop)
 
-        @asyncio.coroutine
-        def _async_request(future):
+        async def _async_request(future):
             """
             :type future: asyncio.Future
             """
             request = WampRequest(request_type, _uri, kwargs, callback, subscription, future)
-            yield from self._decoupler.put_request(request)
-            yield from future  # The client worker is responsible for completing the future
+            await self._decoupler.put_request(request)
+            await future  # The client worker is responsible for completing the future
 
         forwarded_future = asyncio.Future()
         concurrent_future = asyncio.run_coroutine_threadsafe(_async_request(forwarded_future), self._loop)
