@@ -15,11 +15,11 @@ For compatibility with Python 2 on Windows, it is recommended to use the [Python
 ```python
 from waapi import WaapiClient
 
-with client as WaapiClient()
+with client as WaapiClient():
     result = client.call("ak.wwise.core.getInfo")
 ```
 
-The `with` statement automatically closes the connection and unregisters subcribers.
+The `with` statement automatically closes the connection and unregisters subscribers.
 To keep the connection alive, instantiate `WaapiClient` and call `disconnect` when you are done.
 
 ```python
