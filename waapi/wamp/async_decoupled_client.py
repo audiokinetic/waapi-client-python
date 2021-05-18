@@ -15,14 +15,13 @@ class WampClientAutobahn(AkComponent):
     """
     logger = logging.getLogger("WampClientAutobahn")
 
-    def __init__(self, config, decoupler, allow_exception):
+    def __init__(self, decoupler, allow_exception):
         """
-        :param config: Autobahn configuration
         :type decoupler: AutobahnClientDecoupler
         :param allow_exception: True to allow exception, False to ignore them.
                                 In any case they are logged to stderr.
         """
-        super(WampClientAutobahn, self).__init__(config)
+        super(WampClientAutobahn, self).__init__()
         self._decoupler = decoupler
         self._allow_exception = allow_exception
 

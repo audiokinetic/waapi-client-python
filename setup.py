@@ -12,8 +12,7 @@ setup(
     packages=find_packages(exclude=['waapi.test']),
     test_suite='waapi.test',
     install_requires=[
-      'autobahn',
-      'six'
+      'autobahn'
     ],
     license='Apache License 2.0',
     platforms=['any'],
