@@ -75,15 +75,16 @@ class AutobahnClientDecoupler:
             self._future.set_result(None)
 
 
-def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop, allow_exception):
+def start_decoupled_autobahn_client(url, loop, akcomponent_factory, callback_executor, allow_exception, queue_size):
     """
     Initialize a WAMP client runner in a separate thread with the provided asyncio loop
 
     :type url: str
-    :type akcomponent_factory: (AutobahnClientDecoupler, bool) -> AkComponent
-    :type queue_size: int
     :type loop: asyncio.AbstractEventLoop
+    :type akcomponent_factory: (AutobahnClientDecoupler, CallbackExecutor, bool) -> AkComponent
+    :type callback_executor: CallbackExecutor
     :type allow_exception: bool
+    :type queue_size: int
     :rtype: (Thread, AutobahnClientDecoupler)
     """
     decoupler = AutobahnClientDecoupler(queue_size)
@@ -91,9 +92,10 @@ def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop, 
     async_client_thread = _WampClientThread(
         url,
         loop,
-        decoupler,
         akcomponent_factory,
-        allow_exception
+        callback_executor,
+        allow_exception,
+        decoupler
     )
     async_client_thread.start()
 
@@ -101,22 +103,24 @@ def start_decoupled_autobahn_client(url, akcomponent_factory, queue_size, loop, 
 
 
 class _WampClientThread(Thread):
-    def __init__(self, url, loop, decoupler, akcomponent_factory, allow_exception):
+    def __init__(self, url, loop, akcomponent_factory, callback_executor, allow_exception, decoupler):
         """
         WAMP client thread that runs the asyncio main event loop
         Do NOT terminate this thread to stop the client: use the decoupler to send a STOP request.
 
         :type url: str
         :type loop: asyncio.AbstractEventLoop
+        :type akcomponent_factory: (AutobahnClientDecoupler, CallbackExecutor, bool) -> AkComponent
+        :type callback_executor: CallbackExecutor
+        :type allow_exception: bool
         :type decoupler: AutobahnClientDecoupler
-        :type akcomponent_factory: (AutobahnClientDecoupler, bool) -> AkComponent
-        :type allow_exception: False
         """
         super(_WampClientThread, self).__init__()
         self._url = url
         self._loop = loop
         self._decoupler = decoupler
         self._akcomponent_factory = akcomponent_factory
+        self._callback_executor = callback_executor
         self._allow_exception = allow_exception
 
     def run(self):
@@ -132,7 +136,7 @@ class _WampClientThread(Thread):
 
             # create a WAMP-over-WebSocket transport client factory
             transport_factory = WampWebSocketClientFactory(
-                lambda: self._akcomponent_factory(self._decoupler, self._allow_exception),
+                lambda: self._akcomponent_factory(self._decoupler, self._callback_executor, self._allow_exception),
                 url=self._url
             )
 

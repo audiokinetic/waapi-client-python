@@ -4,6 +4,7 @@ from threading import Thread
 
 from autobahn.wamp import ApplicationError
 
+from waapi.client.interface import CallbackExecutor
 from waapi.wamp.interface import WampRequestType, WampRequest, WaapiRequestFailed
 from waapi.wamp.ak_autobahn import AkComponent
 from waapi.wamp.async_compatibility import asyncio
@@ -15,14 +16,17 @@ class WampClientAutobahn(AkComponent):
     """
     logger = logging.getLogger("WampClientAutobahn")
 
-    def __init__(self, decoupler, allow_exception):
+    def __init__(self, decoupler, callback_executor, allow_exception):
         """
         :type decoupler: AutobahnClientDecoupler
+        :type callback_executor: CallbackExecutor
         :param allow_exception: True to allow exception, False to ignore them.
                                 In any case they are logged to stderr.
+        :type allow_exception: bool
         """
         super(WampClientAutobahn, self).__init__()
         self._decoupler = decoupler
+        self._callback_executor = callback_executor
         self._allow_exception = allow_exception
 
     @classmethod
@@ -38,6 +42,7 @@ class WampClientAutobahn(AkComponent):
         :param request: WampRequest
         """
         self._log("Received STOP, stopping and setting the result")
+        self._callback_executor.stop()
         self.disconnect()
         self._log("Disconnected")
         request.future.set_result(True)
@@ -52,7 +57,7 @@ class WampClientAutobahn(AkComponent):
         result = res.kwresults if res else {}
         if request.callback:
             self._log("Callback specified, calling it")
-            callback = _WampCallbackHandler(request.callback)
+            callback = _WampCallbackHandler(request.callback, self._callback_executor)
             callback(result)
         request.future.set_result(result)
 
@@ -61,7 +66,7 @@ class WampClientAutobahn(AkComponent):
         :param request: WampRequest
         """
         self._log("Received SUBSCRIBE, subscribing to " + request.uri)
-        callback = _WampCallbackHandler(request.callback)
+        callback = _WampCallbackHandler(request.callback, self._callback_executor)
         subscription = await (self.subscribe(
             callback,
             topic=request.uri,
@@ -87,6 +92,7 @@ class WampClientAutobahn(AkComponent):
     async def onJoin(self, details):
         self._log("Joined!")
         self._decoupler.set_joined()
+        self._callback_executor.start()
 
         try:
             while True:
@@ -130,17 +136,16 @@ class WampClientAutobahn(AkComponent):
         # Stop the asyncio loop, ultimately stopping the runner thread
         asyncio.get_event_loop().stop()
 
-
 class _WampCallbackHandler:
     """
     Wrapper for a callback that unwraps a WAMP response
     """
-    def __init__(self, callback=None):
+    def __init__(self, callback, executor):
         assert callable(callback)
+        assert isinstance(executor, CallbackExecutor)
         self._callback = callback
+        self._executor = executor
 
     def __call__(self, *args, **kwargs):
         if self._callback and callable(self._callback):
-            # Use a proper thread so that we can nest calls without blocking in the event loop
-            # TODO: Consider using a ThreadPool rather than instantiating a thread each time
-            Thread(target=lambda: self._callback(**kwargs)).start()
+            self._executor.execute(self._callback, kwargs)

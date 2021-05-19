@@ -31,7 +31,7 @@ class SubscribeLowLevel(CleanConnectedClientTestCase):
 
     def test_subscribe_no_options_bound_callback(self):
         # Precondition: No object
-        self._delete_object()
+        self._delete_objects_if_exists()
 
         handler = self.client.subscribe("ak.wwise.core.object.created")
 
@@ -65,7 +65,7 @@ class SubscribeLowLevel(CleanConnectedClientTestCase):
 
     def test_subscribe_with_options(self):
         # Precondition: No object
-        self._delete_object()
+        self._delete_objects_if_exists()
 
         event = Event()
 
@@ -90,7 +90,7 @@ class SubscribeLowLevel(CleanConnectedClientTestCase):
         self.assertTrue(handler.unsubscribe())
 
     def test_subscribe_lambda(self):
-        self._delete_object()
+        self._delete_objects_if_exists()
 
         event = Event()
 
@@ -116,7 +116,7 @@ class SubscribeLowLevel(CleanConnectedClientTestCase):
         self.assertIsNone(handler.bind(NotCallable()))
 
     def test_no_callback_valid(self):
-        self._delete_object()
+        self._delete_objects_if_exists()
         self.client.subscribe("ak.wwise.core.object.created")
         self._create_object()
         # No exception: the callback wrapper ignored the publish

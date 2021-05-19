@@ -5,7 +5,7 @@ from waapi.test.fixture import CleanConnectedClientTestCase
 
 class Integration(CleanConnectedClientTestCase):
     def test_rpc_in_subscribe_callback(self):
-        self._delete_object()
+        self._delete_objects_if_exists()
 
         event = Event()
         handler = None

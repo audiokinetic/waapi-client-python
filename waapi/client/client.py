@@ -3,6 +3,7 @@ from copy import copy
 
 from waapi.client.event import EventHandler
 from waapi.client.interface import UnsubscribeHandler
+from waapi.client.executor import SequentialThreadExecutor
 from waapi.wamp.interface import WampRequest, WampRequestType, CannotConnectToWaapiException, WaapiRequestFailed
 from waapi.wamp.async_decoupled_client import WampClientAutobahn
 from waapi.wamp.async_compatibility import asyncio
@@ -41,18 +42,25 @@ class WaapiClient(UnsubscribeHandler):
     Import as:
       from waapi import WaapiClient
     """
-    def __init__(self, url=None, allow_exception=False):
+    def __init__(self,
+        url=None,
+        allow_exception=False,
+        callback_executor=SequentialThreadExecutor
+        ):
         """
         :param url: URL of the Wwise Authoring API WAMP server, defaults to ws://127.0.0.1:8080/waapi
         :type: str
         :param allow_exception: Allow errors on call and subscribe to throw an exception. Default is False.
         :type allow_exception: bool
+        :param callback_executor: Executor strategy for event callbacks
+        :type callback_executor: CallbackExecutor
         :raises: CannotConnectToWaapiException
         """
         super(WaapiClient, self).__init__()
 
-        self._allow_exception = allow_exception
         self._url = url or "ws://127.0.0.1:8080/waapi"
+        self._allow_exception = allow_exception
+        self._callback_executor = callback_executor
         self._client_thread = None
         """:type: Thread"""
 
@@ -85,10 +93,14 @@ class WaapiClient(UnsubscribeHandler):
         :return: True if connection succeeded, False otherwise.
         :rtype: bool
         """
-        # Arbitrary queue size of 32
-        # TODO: Test if an unbounded queue might do the job for most cases, add the queue size as a parameter
-        self._client_thread, self._decoupler = \
-            start_decoupled_autobahn_client(self._url, WampClientAutobahn, 32, self._loop, self._allow_exception)
+        self._client_thread, self._decoupler = start_decoupled_autobahn_client(
+            self._url,
+            self._loop,
+            WampClientAutobahn,
+            self._callback_executor(),
+            self._allow_exception,
+            queue_size=0
+        )
 
         # Return upon connection success
         self._decoupler.wait_for_joined()
