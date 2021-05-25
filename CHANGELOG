@@ -1,3 +1,22 @@
+# Version 0.6
+## Bugfixes
+* WG-54691 Message payloads size is exceeded when using ak.wwise.core.audio.import with 100+ files
+* WG-54781 Users can't guaranty order of publish events
+
+## Behavior
+With WG-54781, a new argument was added to WaapiClient's constructor to specify an execution strategy for event
+handler callbacks. Three strategies are bundled with the `waapi` module, with `PerCallbackThreadExecutor` acting
+identically to version 0.5 and `SequentialThreadExecutor` acting as the new default.
+
+* SequentialThreadExecutor (default): A single thread processes callbacks sequential, in order of reception
+* PerCallbackThreadExecutor (old default): A new thread runs each callback, in the order they are scheduled
+* AsyncioLoopExecutor: Processes the callback on the main asyncio loop (does not support calls to WaapiClient instances)
+
+It is also easy for users to specify a custom strategy by implementing the `CallbackExecutor` interface.
+
+## Misc
+* WG-54779 Update pipfile.lock (Closes #7, Closes #9)
+
 # Version 0.5
 ## Bugfixes
 * WG-51774 Cannot use ak.wwise.waapi.getSchema because the uri keyword is used in WaapiClient.call (Closes #5)

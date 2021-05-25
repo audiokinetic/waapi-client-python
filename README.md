@@ -8,7 +8,7 @@ Decoupled autobahn WAMP client with support for plain options and bindable subsc
 ## Setup
 For compatibility with Python 2 on Windows, it is recommended to use the [Python Launcher for Windows](https://docs.python.org/3/using/windows.html#launcher) which is installed with Python 3 from [python.org](https://www.python.org).
 
-* Windows: `py -3 -m pip install waapi-client` 
+* Windows: `py -3 -m pip install waapi-client`
 * Other platforms: `python3 -m pip install waapi-client`
 
 ## Usage
@@ -62,7 +62,7 @@ You may install the package locally using either pip or pipenv.
 
 Clone this repository, then from the repository root run:
 
-* Windows: `py -3 -m pip install -e .` 
+* Windows: `py -3 -m pip install -e .`
 * Other platforms: `python3 -m pip install -e .`
 
 or
