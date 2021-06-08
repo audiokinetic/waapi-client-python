@@ -1,15 +1,15 @@
-from txaio import make_logger
 from pprint import pformat
-from threading import Thread
 
-from autobahn.wamp import ApplicationError
+from autobahn.wamp import ApplicationError, CloseDetails
 
 from waapi.client.interface import CallbackExecutor
 from waapi.wamp.interface import WampRequestType, WampRequest, WaapiRequestFailed
 from waapi.wamp.ak_autobahn import AkComponent
 from waapi.wamp.async_compatibility import asyncio
 
-logger = make_logger()
+import txaio
+
+logger = txaio.make_logger()
 
 class WampClientAutobahn(AkComponent):
     """
@@ -28,6 +28,7 @@ class WampClientAutobahn(AkComponent):
         self._decoupler = decoupler
         self._callback_executor = callback_executor
         self._allow_exception = allow_exception
+        self._done = False
 
     @classmethod
     def enable_debug_log(cls):
@@ -43,8 +44,8 @@ class WampClientAutobahn(AkComponent):
         """
         self._log("Received STOP, stopping and setting the result")
         self._callback_executor.stop()
-        self.disconnect()
-        self._log("Disconnected")
+        self.leave(reason=CloseDetails.REASON_DEFAULT)
+        self._log("Leave")
         request.future.set_result(True)
 
     async def call_handler(self, request):
@@ -131,6 +132,22 @@ class WampClientAutobahn(AkComponent):
         except RuntimeError:
             # The loop has been shut down by a disconnect
             pass
+
+    def onLeave(self, details):
+        # The Authoring server only uses this error code as closing message
+        if details.reason != "wamp.error.goodbye_and_out":
+            self.log.warn('session closed with reason {reason} [{message}]', reason=details.reason, message=details.message)
+
+        # fire ApplicationError on any currently outstanding requests
+        exc = ApplicationError(details.reason, details.message)
+        d = self._errback_outstanding_requests(exc)
+
+        def disconnect(_):
+            if self._transport:
+                self.disconnect()
+                asyncio.get_event_loop().stop()
+        txaio.add_callbacks(d, disconnect, disconnect)
+        return d
 
     def onDisconnect(self):
         self._log("The client was disconnected.")
