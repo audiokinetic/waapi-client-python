@@ -1,6 +1,7 @@
 import inspect
 import random
 import txaio
+
 from sys import stderr
 from threading import Thread, Event
 from pprint import pformat
@@ -153,17 +154,23 @@ class _WampClientThread(Thread):
                 )
             )
 
+            process_goodbye = False
             try:
                 self._loop.run_forever()
             except KeyboardInterrupt:
                 # wait until we send Goodbye if user hit ctrl-c
                 # (done outside this except so SIGTERM gets the same handling)
-                pass
+                process_goodbye = True
 
-            # give Goodbye message a chance to go through, if we still
-            # have an active session
-            if protocol._session:
-                self._loop.run_until_complete(protocol._session.leave())
+            if process_goodbye and not self._loop.is_closed():
+                # give Goodbye message a chance to go through, if we still
+                # have an active session
+                if protocol._session:
+                    self._loop.run_until_complete(protocol._session.leave())
+
+            if not protocol.is_closed.done():
+                transport.close()
+                self._loop.run_until_complete(protocol.is_closed)
 
             self._loop.close()
         except Exception as e:
