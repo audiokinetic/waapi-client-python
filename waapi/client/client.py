@@ -129,9 +129,14 @@ class WaapiClient(UnsubscribeHandler):
             # Create a new loop for upcoming uses
             if asyncio.get_event_loop().is_closed():
                 asyncio.set_event_loop(asyncio.new_event_loop())
-
+            # ++++[community fix]
+            self._loop.close()
+            # ----[community fix]
             return True
 
+        # ++++[community fix]
+        self._loop.close()
+        # ----[community fix]
         # Only the caller that truly caused the disconnection return True
         return False
 
