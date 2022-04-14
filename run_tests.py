@@ -23,8 +23,8 @@ wwiseroot = args.wwiseroot if args.wwiseroot != None else wwiseroot_env
 
 platform_roots = {
     "Windows": [os.path.join("Authoring", "x64", "Release", "bin", "WwiseConsole.exe")],
-    "darwin": [os.path.join("Authoring", "macosx_gmake", "Release", "bin", "WwiseConsole"), os.path.join("Authoring", "macosx_xcode4", "Release", "bin", "WwiseConsole")],
-    "linux": [os.path.join("Authoring", "linux_gmake", "Release", "bin", "WwiseConsole")]
+    "Darwin": [os.path.join("Authoring", "macosx_gmake", "Release", "bin", "WwiseConsole"), os.path.join("Authoring", "macosx_xcode4", "Release", "bin", "WwiseConsole")],
+    "Linux": [os.path.join("Authoring", "linux_gmake", "Release", "bin", "WwiseConsole")]
 }.get(platform.system())
 
 wwiseconsole_path = None
