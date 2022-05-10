@@ -53,8 +53,7 @@ with TemporaryDirectory() as temp_dir:
 
     # Add the specifiecd python versions
     if args.python_versions:
-        command.append("-e")
-        command += [f"py{python_version}" for python_version in args.python_versions]
+        command += [f"-e py{python_version}" for python_version in args.python_versions]
 
     tox_result = subprocess.run(command)
     wwiseconsole_project_open.terminate()
