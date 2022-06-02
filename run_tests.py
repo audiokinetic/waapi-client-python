@@ -36,11 +36,11 @@ wwiseconsole_path = None
 if args.console_path:
     wwiseconsole_path = args.console_path
 else:
-    wwiseroot = args.wwiseroot if args.wwiseroot is not None else wwiseroot_env
+    wwiseroot = args.wwiseroot_path or wwiseroot_env
 
     if not wwiseroot:
         print("Error: Cannot find WwiseConsole executable", file=sys.stderr)
-        print("Pass --console-path or --wwiseroot, or define the WWISEROOT environment variable")
+        print("Pass --console-path or --wwiseroot-path, or define the WWISEROOT environment variable")
         sys.exit(1)
 
     platform_roots = {
