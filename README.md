@@ -2,7 +2,7 @@
 Decoupled autobahn WAMP client with support for plain options and bindable subscription callbacks.
 
 ## Requirements
-* Python 3.7, 3.8 or 3.9
+* Python 3.7, 3.8, 3.9 or 3.10
 * Wwise instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
 ## Setup
