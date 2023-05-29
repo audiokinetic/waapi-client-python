@@ -130,10 +130,6 @@ class _WampClientThread(Thread):
             txaio.use_asyncio()
             txaio.config.loop = self._loop
 
-            # Info is too verbose, use error by default
-            # TODO: Make logging level for autobahn configurable
-            txaio.start_logging(level='error')
-
             # create a WAMP-over-WebSocket transport client factory
             transport_factory = WampWebSocketClientFactory(
                 lambda: self._akcomponent_factory(self._decoupler, self._callback_executor, self._allow_exception),

@@ -1,4 +1,4 @@
-import logging
+from txaio import make_logger
 from pprint import pformat
 from threading import Thread
 
@@ -9,12 +9,12 @@ from waapi.wamp.interface import WampRequestType, WampRequest, WaapiRequestFaile
 from waapi.wamp.ak_autobahn import AkComponent
 from waapi.wamp.async_compatibility import asyncio
 
+logger = make_logger()
 
 class WampClientAutobahn(AkComponent):
     """
     Implementation class of a Waapi client using the autobahn library
     """
-    logger = logging.getLogger("WampClientAutobahn")
 
     def __init__(self, decoupler, callback_executor, allow_exception):
         """
@@ -31,11 +31,11 @@ class WampClientAutobahn(AkComponent):
 
     @classmethod
     def enable_debug_log(cls):
-        cls.logger.setLevel(logging.DEBUG)
+        logger._set_log_level('debug')
 
     @classmethod
     def _log(cls, msg):
-        cls.logger.debug("WampClientAutobahn: %s", msg)
+        logger.debug("WampClientAutobahn: {}".format(msg))
 
     async def stop_handler(self, request):
         """
@@ -114,7 +114,9 @@ class WampClientAutobahn(AkComponent):
                     else:
                         self._log("Undefined WampRequestType")
                 except ApplicationError as e:
-                    self.logger.error("WampClientAutobahn (ERROR): " + pformat(str(e)))
+                    sanitized_exception_str = str(e).replace("{", "{{").replace("}", "}}")
+                    error_message = "WampClientAutobahn (ERROR): " + pformat(sanitized_exception_str)
+                    logger.error(error_message)
 
                     if self._allow_exception:
                         request.future.set_exception(WaapiRequestFailed(e))

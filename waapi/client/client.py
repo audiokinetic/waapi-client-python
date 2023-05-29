@@ -1,4 +1,5 @@
-from sys import platform
+import logging
+from sys import platform, stdout
 from copy import copy
 
 from waapi.client.event import EventHandler
@@ -23,10 +24,9 @@ def connect(url=None):
     except CannotConnectToWaapiException:
         return None
 
-
 def enable_debug_log():
+    logging.basicConfig(stream=stdout, level=logging.DEBUG)
     WampClientAutobahn.enable_debug_log()
-
 
 class WaapiClient(UnsubscribeHandler):
     """
