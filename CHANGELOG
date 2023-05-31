@@ -1,3 +1,14 @@
+# Version 0.7
+## Bugfixes
+* WG-65726 Unreal Hang due to Waapi Call through Python (UE5.1)
+
+## Misc
+* Added `Python 3.11` to the tested runtimes
+* Added `run-tests.py` to make it easier to run the test suite
+
+## Behavior
+With WG-65726, `enable_debug_log` now assigns the `DEBUG` logging level to the global logging config.
+
 # Version 0.6
 ## Bugfixes
 * WG-54691 Message payloads size is exceeded when using ak.wwise.core.audio.import with 100+ files

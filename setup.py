@@ -17,7 +17,7 @@ setup(
     license='Apache License 2.0',
     platforms=['any'],
     scripts=[],
-    version='0.6',
+    version='0.7',
     description='Wwise Authoring API client.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -29,9 +29,12 @@ setup(
     keywords=['waapi', 'wwise', 'audiokinetic'],
     classifiers=[
         'Intended Audience :: Developers',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
         'License :: OSI Approved :: Apache Software License',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Development Status :: 4 - Beta'
+        'Development Status :: 4 - Beta',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX :: Linux'
     ],
 )

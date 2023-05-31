@@ -2,11 +2,11 @@
 Decoupled autobahn WAMP client with support for plain options and bindable subscription callbacks.
 
 ## Requirements
-* Python 3.7, 3.8, 3.9 or 3.10
-* Wwise instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
+* Python 3.7+ (see `tox.ini` for versions tested)
+* [Wwise](https://www.audiokinetic.com/en/download) instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
 ## Setup
-For compatibility with Python 2 on Windows, it is recommended to use the [Python Launcher for Windows](https://docs.python.org/3/using/windows.html#launcher) which is installed with Python 3 from [python.org](https://www.python.org).
+On Windows, it is recommended to use the [Python Launcher for Windows](https://docs.python.org/3/using/windows.html#launcher) which is installed with Python 3 from [python.org](https://www.python.org).
 
 * Windows: `py -3 -m pip install waapi-client`
 * Other platforms: `python3 -m pip install waapi-client`
