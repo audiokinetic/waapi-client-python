@@ -1,0 +1,66 @@
+# Prerequisites
+The following packages are needed for the release process:
+
+- build
+- setuptools
+- twine
+- wheel
+
+# Steps
+
+## Validate tests pass
+To release a new version of waapi-client-python, make sure the test suite passes for all versions covered by `tox.ini`.
+
+## Bump version
+The version is a field in `setup.py`: only bump the major on a breaking change.
+
+## Update the CHANGELOG
+Make sure to update the CHANGELOG file with the latest changes for that release.
+Explain any changes and/or limitation, and the impact it has on users of the library.
+
+## Test install from the pypitest server
+To test the package installs correctly, first package it with the following command:
+
+```
+# Run from clone root, first install the `build` package if you don't have it
+python3 -m build --wheel --sdist .
+```
+
+Then, upload to the `pypitest` to make sure the install process works:
+
+```
+# Run from clone root, first install the `twine` package if you don't have it
+python3 -m twine upload -r testpypi dist/*
+```
+
+If successful, you can validate the package installs correctly by doing:
+```
+python3 -m pip install -i https://test.pypi.org/simple/ waapi-client
+```
+
+## Upload on the real server
+You can now upload to the real server:
+
+```
+python3 -m twine upload dist/*
+```
+
+Again, confirm the version installs correctly.
+
+## Release on Github
+Finally, release the code on Github with a version tag.
+Tag the HEAD commit of master you uploaded with
+
+```
+# Version has a `v` prefix, e.g., v0.7
+git tag vVERSION
+```
+
+Then push the master branch with tags:
+```
+# Assuming you have a remote called `github`
+git push github --tags
+```
+
+On Github, create a new release and copy the latest CHANGELOG entry text into the release body.
+Releases appear at https://github.com/audiokinetic/waapi-client-python/releases

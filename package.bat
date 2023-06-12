@@ -1,2 +1,2 @@
-py -3 -m pip install --user --upgrade setuptools wheel
-py -3 setup.py sdist bdist_wheel
+py -3 -m pip install --user --upgrade setuptools wheel build
+py -3 -m build --wheel --sdist .
