@@ -2,11 +2,18 @@
 The following packages are needed for the release process:
 
 - build
+- pyenv
 - setuptools
 - twine
 - wheel
 
 # Steps
+## Update Pipfile.lock
+Make sure the Pipfile.lock is up to date with the latest dependencies:
+
+```
+python3 -m pipenv update
+```
 
 ## Validate tests pass
 To release a new version of waapi-client-python, make sure the test suite passes for all versions covered by `tox.ini`.
