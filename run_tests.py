@@ -79,5 +79,6 @@ with TemporaryDirectory() as temp_dir:
 
     tox_result = subprocess.run(command, check=False)
     wwiseconsole_project_open.terminate()
+    wwiseconsole_project_open.wait(30) # wait for 30 seconds max
 
 sys.exit(tox_result.returncode)
