@@ -15,7 +15,7 @@ On Windows, it is recommended to use the [Python Launcher for Windows](https://d
 ```python
 from waapi import WaapiClient
 
-with client as WaapiClient():
+with WaapiClient() as client:
     result = client.call("ak.wwise.core.getInfo")
 ```
 
