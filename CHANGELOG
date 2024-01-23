@@ -1,3 +1,8 @@
+# Version 0.7.1
+## Misc
+* Fix readme sample
+* Update Pipfile.lock
+
 # Version 0.7
 ## Bugfixes
 * WG-65726 Unreal Hang due to Waapi Call through Python (UE5.1)

@@ -33,12 +33,19 @@ To test the package installs correctly, first package it with the following comm
 python3 -m build --wheel --sdist .
 ```
 
-Then, upload to the `pypitest` to make sure the install process works:
+Then, upload to the `pypitest` to make sure the install process works.
+You will need to first log into test.pypi.org, enable 2-factor authentication and generate an API token at
+https://test.pypi.org/manage/account/token/ (or go to your Account Settings, scroll down to the "API tokens" section and
+click on "Add API token"). Make it a project-scope token only to waapi-client.
+
+Once this is done, copy the token and run:
 
 ```
 # Run from clone root, first install the `twine` package if you don't have it
 python3 -m twine upload -r testpypi dist/*
 ```
+
+When asked for a username, enter `__token__` and paste the token you generated at password input.
 
 If successful, you can validate the package installs correctly by doing:
 ```
@@ -46,7 +53,7 @@ python3 -m pip install -i https://test.pypi.org/simple/ waapi-client
 ```
 
 ## Upload on the real server
-You can now upload to the real server:
+You can do the same as the above on the real server:
 
 ```
 python3 -m twine upload dist/*
