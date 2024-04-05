@@ -2,7 +2,7 @@
 Decoupled autobahn WAMP client with support for plain options and bindable subscription callbacks.
 
 ## Requirements
-* Python 3.7+ (see `tox.ini` for versions tested)
+* Non-EOL Python 3.x version (see `tox.ini` for versions tested). Refer to the official [Status of Python versions](https://devguide.python.org/versions)
 * [Wwise](https://www.audiokinetic.com/en/download) instance with the Wwise Authoring API enabled (`Project > User Preferences... > Enable Wwise Authoring API`)
 
 ## Setup
@@ -78,4 +78,4 @@ Install the `tox` package:
 Open a blank project in Wwise, then you may execute `tox` in the terminal from the root of the repository
 
 The test suite will run for all supported versions of Python.
-Use `-e pyXX` to run for a single version, e.g., `tox -e py37` for Python 3.7).
+Use `-e pyXX` to run for a single version, e.g., `tox -e py312` for Python 3.12).
