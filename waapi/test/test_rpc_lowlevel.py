@@ -1,11 +1,27 @@
 from copy import copy
 
+from waapi.wamp.async_decoupled_client import logger
+
 from waapi.test.fixture import ConnectedClientTestCase
 
 class RpcLowLevel(ConnectedClientTestCase):
     def test_invalid(self):
         result = self.client.call("ak.wwise.idontexist")
         self.assertIs(result, None)  # Noexcept
+
+    def test_error_logging(self):
+        errors = []
+        def peek_error(*args, **kwargs):
+            errors.append(*args)
+            old_error_fct(*args, **kwargs);
+
+        old_error_fct = logger.error
+        logger.error = peek_error
+        self.client.call("ak.wwise.idontexist")
+        logger.error = old_error_fct
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("WampClientAutobahn (ERROR)", errors[0])
 
     def test_no_argument(self):
         result = self.client.call("ak.wwise.core.getInfo")

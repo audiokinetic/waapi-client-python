@@ -115,13 +115,14 @@ class WampClientAutobahn(AkComponent):
                     else:
                         self._log("Undefined WampRequestType")
                 except ApplicationError as e:
-                    sanitized_exception_str = str(e).replace("{", "{{").replace("}", "}}")
-                    error_message = "WampClientAutobahn (ERROR): " + pformat(sanitized_exception_str)
-                    logger.error(error_message)
-
                     if self._allow_exception:
+                        # Forward exception as WaapiRequestFailed
                         request.future.set_exception(WaapiRequestFailed(e))
                     else:
+                        # Log error and return None
+                        sanitized_exception_str = str(e).replace("{", "{{").replace("}", "}}")
+                        error_message = "WampClientAutobahn (ERROR): " + pformat(sanitized_exception_str)
+                        logger.error(error_message)
                         request.future.set_result(None)
 
                 self._log("Done treating request")
