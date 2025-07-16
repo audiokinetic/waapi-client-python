@@ -1,3 +1,8 @@
+# Version 0.8
+## Bugfixes
+* WG-78844 Disable logging of errors when exceptions are allowed
+* WG-55059 WAAPI Python client does not do a clean WAMP disconnect
+
 # Version 0.7.2
 ## Misc
 * Update Python version support window
