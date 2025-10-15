@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-autobahn = "*"
+
+autobahn = "24.4.2"
 
 [dev-packages]
