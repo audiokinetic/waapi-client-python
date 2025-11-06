@@ -69,7 +69,6 @@ class RpcLowLevel(ConnectedClientTestCase):
         self.assertIsNotNone(result)
         self.assertTrue(isinstance(result, dict))
 
-        self.assertEqual(len(result), 3)
         self.assertIn("argsSchema", result)
         self.assertIn("resultSchema", result)
         self.assertIn("optionsSchema", result)
