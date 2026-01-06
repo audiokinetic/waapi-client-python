@@ -64,9 +64,14 @@ class WaapiClient(UnsubscribeHandler):
         self._client_thread = None
         """:type: Thread"""
 
-        self._loop = asyncio.get_event_loop()
-        if not self._loop.is_running():
-            if not self._loop.is_closed():
+        try:
+            self._loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # No asyncio loop by default in Python 3.14+
+            self._loop = None
+
+        if not self._loop or not self._loop.is_running():
+            if self._loop and not self._loop.is_closed():
                 self._loop.close()
             if platform == 'win32':
                 #  Prefer the ProactorEventLoop event loop on Windows
