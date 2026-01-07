@@ -75,8 +75,10 @@ with TemporaryDirectory() as temp_dir:
 
     # Add the specified python versions
     if args.python_versions:
-        command += [f"-e {python_version}" for python_version in args.python_versions]
+        command.append("-e")
+        command.append(",".join(args.python_versions))
 
+    print(f"Running command: '{command}'")
     tox_result = subprocess.run(command, check=False)
     wwiseconsole_project_open.terminate()
     wwiseconsole_project_open.wait(30) # wait for 30 seconds max
