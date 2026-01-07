@@ -1,3 +1,9 @@
+# Version 0.8.1
+## Bugfixes
+* WG-81699 Support Python 3.14
+* WG-80946 Fix test for return expression of getSchema
+* WG-80498 Enforce autobahn version 24.4.2 to avoid dependency on native extension (_nvx_utf8validator.abi3.so) that fails to build with older Xcode versions
+
 # Version 0.8
 ## Bugfixes
 * WG-78844 Disable logging of errors when exceptions are allowed

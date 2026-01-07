@@ -19,7 +19,7 @@ python3 -m pipenv update
 To release a new version of waapi-client-python, make sure the test suite passes for all versions covered by `tox.ini`.
 
 ## Bump version
-The version is a field in `setup.py`: only bump the major on a breaking change.
+The version is a field in `pyproject.toml`: only bump the major on a breaking change.
 
 ## Update the CHANGELOG
 Make sure to update the CHANGELOG file with the latest changes for that release.
@@ -45,7 +45,7 @@ Once this is done, copy the token and run:
 python3 -m twine upload -r testpypi dist/*
 ```
 
-When asked for a username, enter `__token__` and paste the token you generated at password input.
+When asked for a password, paste the token you generated.
 
 If successful, you can validate the package installs correctly by doing:
 ```

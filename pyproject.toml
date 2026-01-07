@@ -1,0 +1,50 @@
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "waapi-client"
+version = "0.8.1"
+authors = [
+    { name="Audiokinetic" },
+    { name="Samuel Longchamps", email="slongchamps@audiokinetic.com" },
+]
+maintainers = [
+    { name="Samuel Longchamps", email="slongchamps@audiokinetic.com" },
+]
+description = "Wwise Authoring API client."
+dynamic = ["readme"]
+
+requires-python = ">=3.10"
+dependencies = [
+    'autobahn==24.4.2'
+]
+classifiers = [
+    'Intended Audience :: Developers',
+    'Programming Language :: Python :: 3 :: Only',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Development Status :: 4 - Beta',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: POSIX :: Linux'
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+keywords = ['waapi', 'wwise', 'audiokinetic']
+
+[tool.setuptools.packages.find]
+include = ["waapi*"]
+exclude = ["waapi*test*"]
+
+[tool.setuptools.exclude-package-data]
+waapi = ["waapi*test*"]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+[project.urls]
+Homepage = "https://github.com/audiokinetic/waapi-client-python"
+Issues = "https://github.com/audiokinetic/waapi-client-python/issues"
+Documentation = "https://www.audiokinetic.com/library/edge/?source=SDK&id=waapi_index.html"
+Releases = "https://github.com/audiokinetic/waapi-client-python/releases"
