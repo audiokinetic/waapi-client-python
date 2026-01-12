@@ -63,18 +63,22 @@ class WaapiClient(UnsubscribeHandler):
         self._callback_executor = callback_executor
         self._client_thread = None
         """:type: Thread"""
-
-        self._loop = asyncio.get_event_loop()
-        if not self._loop.is_running():
-            if not self._loop.is_closed():
+        # ++++[community fix]
+        try:
+            self._loop = asyncio.get_event_loop()
+        except Exception as e:
+            print(e)
+            self._loop = None
+        if not self._loop or not self._loop.is_running():
+            if self._loop and not self._loop.is_closed():
                 self._loop.close()
+        # ----[community fix]
             if platform == 'win32':
                 #  Prefer the ProactorEventLoop event loop on Windows
                 self._loop = asyncio.ProactorEventLoop()
             else:
                 self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
-
         self._decoupler = None
         """:type: AutobahnClientDecoupler"""
 
@@ -125,9 +129,14 @@ class WaapiClient(UnsubscribeHandler):
             # Create a new loop for upcoming uses
             if asyncio.get_event_loop().is_closed():
                 asyncio.set_event_loop(asyncio.new_event_loop())
-
+            # ++++[community fix]
+            self._loop.close()
+            # ----[community fix]
             return True
 
+        # ++++[community fix]
+        self._loop.close()
+        # ----[community fix]
         # Only the caller that truly caused the disconnection return True
         return False
 
